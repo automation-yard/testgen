@@ -1,0 +1,37 @@
+{
+  "name": "@automationyard/testgen",
+  "version": "1.0.0",
+  "main": "dist/src/index.js",
+  "bin": {
+    "testgen": "./dist/src/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.31.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.63.0",
+    "ora": "^5.4.1",
+    "typescript": "^4.5.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.4",
+    "@types/jest": "^27.0.3",
+    "@types/node": "^16.11.7",
+    "babel-jest": "^27.5.1",
+    "biome": "^0.3.3",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
+    "ts-node": "^10.4.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "biome check --apply",
+      "jest --findRelatedTests"
+    ]
+  }
+}
