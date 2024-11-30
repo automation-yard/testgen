@@ -8,20 +8,25 @@
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/index.ts",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.31.0",
+    "commander": "^11.1.0",
+    "cosmiconfig": "^9.0.0",
     "dotenv": "^16.4.5",
     "openai": "^4.63.0",
     "ora": "^5.4.1",
-    "typescript": "^4.5.4"
+    "typescript": "^4.5.4",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.4",
     "@types/jest": "^27.0.3",
     "@types/node": "^16.11.7",
+    "@types/typescript": "^2.0.0",
     "babel-jest": "^27.5.1",
     "biome": "^0.3.3",
     "jest": "^27.3.1",
