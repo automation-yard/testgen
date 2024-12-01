@@ -32,6 +32,22 @@ testgen generate src/services/user.service.ts
 testgen generate src/services/user.service.ts --method createUser
 ```
 
+3. Clean up debug files and optionally generated test files:
+
+```bash
+# Clean only debug files (requires DEBUG=true)
+DEBUG=true testgen clean
+
+# Clean debug files without DEBUG mode
+testgen clean --force
+
+# Clean both debug files and generated tests
+testgen clean --tests
+
+# Clean everything without DEBUG mode
+testgen clean --force --tests
+```
+
 ## Configuration
 
 TestGen can be configured through a `.testgenrc` file or in your `package.json` under the `testgen` key:
@@ -86,6 +102,23 @@ For OpenAI:
 ```bash
 OPENAI_API_KEY=your_api_key
 ```
+
+For Development:
+
+```bash
+DEBUG=true # Enables debug mode and clean command
+```
+
+## Commands
+
+- `testgen init` - Initialize TestGen configuration
+- `testgen generate <file> [options]` - Generate tests for a file
+  - `-m, --method <method>` - Generate tests for a specific method
+  - `-p, --provider <provider>` - Choose LLM provider (anthropic/openai)
+  - `-k, --api-key <key>` - Provide API key directly
+- `testgen clean [options]` - Remove debug and test files
+  - `-f, --force` - Force cleanup without DEBUG mode
+  - `-t, --tests` - Also remove generated test files
 
 ## Project Structure
 

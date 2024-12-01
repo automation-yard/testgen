@@ -1,11 +1,15 @@
 import path from "path";
 import { LLMClient } from "../../llm/types";
 import { javascriptPrompt, typescriptPrompt } from "../../prompts";
+import { ConfigLoader } from "../../config/loader";
 
 export class TestGenerator {
   private inputFilePath!: string;
+  private configLoader: ConfigLoader;
 
-  constructor(private llmClient: LLMClient) {}
+  constructor(private llmClient: LLMClient) {
+    this.configLoader = new ConfigLoader();
+  }
 
   public async generateTestsForMethod(
     methodName: string,
@@ -22,6 +26,9 @@ export class TestGenerator {
     classImportStatememts: string[]
   ): Promise<{ code: string; filePath: string }> {
     this.inputFilePath = inputFilePath;
+
+    // Load configuration to get framework info
+    const config = await this.configLoader.loadConfig();
 
     // Combine and deduplicate imports
     const allImports = Array.from(
@@ -41,6 +48,7 @@ export class TestGenerator {
       analysis,
       isJavaScript,
       exportType,
+      framework: config.framework,
     });
 
     let response = await this.llmClient.generateText(prompt);
@@ -71,6 +79,7 @@ export class TestGenerator {
     analysis: string;
     isJavaScript: boolean;
     exportType: "default" | "named" | "unknown";
+    framework: string;
   }): string {
     const template = params.isJavaScript ? javascriptPrompt : typescriptPrompt;
     return template(params);

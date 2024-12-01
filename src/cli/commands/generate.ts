@@ -1,37 +1,37 @@
 import { Command } from "commander";
-import { ConfigLoader } from "../../config/loader";
 import { CodeBundler } from "../../core/bundler";
 import { TestGenerator } from "../../core/generator";
+import { GenerateCommandOptions } from "../types";
 import { AnthropicClient } from "../../llm/anthropic";
 import { OpenAIClient } from "../../llm/openai";
+import { ConfigLoader } from "../../config/loader";
 import { LLMClient } from "../../llm/types";
-import { GenerateCommandOptions } from "../types";
 import { Method } from "../../types/bundler";
-import * as readline from "readline";
+import { getFrameworkRules } from "../../prompts/frameworks";
+import { buildAnalysisPrompt } from "../../prompts/analysis";
+import { writeDebugFile, writeTestFile } from "../../utils/files";
 import ora from "ora";
-import fs from "fs";
 import path from "path";
+import fs from "fs";
+import * as readline from "readline";
 
 export function createGenerateCommand(): Command {
   const command = new Command("generate")
-    .description("Generate tests for a file or method")
-    .argument("<file>", "The file to generate tests for")
+    .description("Generate tests for a file or specific method")
+    .argument("<file>", "File to generate tests for")
     .option("-m, --method <method>", "Specific method to generate tests for")
-    .option("-p, --provider <provider>", "LLM provider (openai or anthropic)")
+    .option("-p, --provider <provider>", "LLM provider (anthropic or openai)")
     .option("-k, --api-key <key>", "API key for the LLM provider")
     .action(async (file: string, options: GenerateCommandOptions) => {
       try {
-        const spinner = ora();
-
         // Load configuration
         const configLoader = new ConfigLoader();
         const config = await configLoader.loadConfig();
 
-        // Setup LLM client
+        // Initialize LLM client
         const provider = options.provider || config.llm.provider;
         const apiKey =
           options.apiKey || process.env[`${provider.toUpperCase()}_API_KEY`];
-
         if (!apiKey) {
           throw new Error(
             `No API key provided for ${provider}. Set ${provider.toUpperCase()}_API_KEY environment variable or use --api-key option.`
@@ -39,14 +39,14 @@ export function createGenerateCommand(): Command {
         }
 
         const llmClient = createLLMClient(provider, apiKey);
+        const spinner = ora("Bundling code...").start();
 
         // Bundle the code
         const entryFilePath = path.resolve(file);
         const fileName = path.basename(entryFilePath).split(".")[0];
         const bundler = new CodeBundler(entryFilePath, options.method);
+        const bundleResult = await bundler.bundle();
 
-        spinner.start("Bundling code...");
-        const bundleResult = bundler.bundle();
         spinner.succeed("Code bundled successfully");
 
         if (bundleResult.message) {
@@ -54,18 +54,14 @@ export function createGenerateCommand(): Command {
         }
 
         // Get user context if not in CI
-        let userContext = "";
-        if (process.env.CI !== "true") {
-          userContext = await getUserContext();
-        }
+        const userContext =
+          process.env.CI === "true" ? "" : await getUserContext();
 
-        // Generate tests for each method
+        // Generate tests
         const testGenerator = new TestGenerator(llmClient);
         const methodsToProcess = options.method
           ? bundleResult.methods.filter((m: Method) =>
-              m.name
-                .toLocaleLowerCase()
-                .includes(options.method!.toLocaleLowerCase())
+              m.name.toLowerCase().includes(options.method!.toLowerCase())
             )
           : bundleResult.methods;
 
@@ -75,13 +71,21 @@ export function createGenerateCommand(): Command {
           );
         }
 
+        const frameworkRules = getFrameworkRules(config.framework);
+
         for (const method of methodsToProcess) {
           spinner.start(`Analyzing method: ${method.name}`);
-          const analysis = await analyzeMethod(
-            method,
-            bundleResult.dependenciesCode,
-            llmClient
-          );
+          const analysisPrompt = buildAnalysisPrompt({
+            methodCode: method.code,
+            dependenciesCode: bundleResult.dependenciesCode,
+            frameworkRules,
+          });
+
+          const analysis = await llmClient.generateText(analysisPrompt);
+
+          writeDebugFile(`analysis_${method.name}`, analysis);
+          writeDebugFile(`analysis_prompt_${method.name}`, analysisPrompt);
+
           spinner.succeed(`Analysis complete for ${method.name}`);
 
           spinner.start(`Generating tests for method: ${method.name}`);
@@ -100,10 +104,9 @@ export function createGenerateCommand(): Command {
             bundleResult.classImportStatements
           );
 
-          fs.writeFileSync(result.filePath, result.code);
-          spinner.succeed(
-            `Tests generated for ${method.name} at ${result.filePath}`
-          );
+          // Write test file
+          writeTestFile(result.filePath, result.code);
+          spinner.succeed(`Tests generated: ${result.filePath}`);
         }
       } catch (error) {
         console.error(
@@ -134,69 +137,40 @@ async function getUserContext(): Promise<string> {
     output: process.stdout,
   });
 
-  return new Promise<string>((resolve) => {
-    rl.question(
-      "Please provide additional context if any (or press Enter to skip):\n",
-      (answer) => {
-        rl.close();
-        resolve(answer);
-      }
-    );
-  });
+  const questions = [
+    {
+      text: "Please provide additional context if any (or press Enter to skip):",
+      key: "general",
+    },
+    {
+      text: "Are there any specific testing requirements or conventions to follow?",
+      key: "testingRequirements",
+    },
+    {
+      text: "Are there any known edge cases or complex scenarios to consider?",
+      key: "edgeCases",
+    },
+  ];
+
+  let context = "";
+  for (const question of questions) {
+    const answer = await askQuestion(rl, question.text);
+    if (answer.trim()) {
+      context += `${question.key}: ${answer}\n`;
+    }
+  }
+
+  rl.close();
+  return context;
 }
 
-async function analyzeMethod(
-  method: Method,
-  dependenciesCode: string,
-  llmClient: LLMClient
+function askQuestion(
+  rl: readline.Interface,
+  question: string
 ): Promise<string> {
-  const analysisPrompt = `
-Analyze the following method and its dependencies for test generation:
-
-Method:
-${method.code}
-
-Dependencies:
-${dependenciesCode}
-
-Please provide analysis in the following structured format:
-1. Code Overview
-- High-level description of the code's purpose
-- Architecture/design patterns used
-- External dependencies and their roles
-
-2. Function Analysis
-- Function name and signature
-- Purpose and responsibility
-- Input parameters with types and constraints
-- Expected output/return values
-- Error cases and expected error handling
-- Dependencies and side effects
-- Async/sync behavior
-
-3. Data Flow
-- Input/output relationships between functions
-- Data transformations
-- State management (if applicable)
-
-4. Testing Requirements
-For each function, outline:
-- Required test scenarios
-- Edge cases to cover
-- Mocking requirements for dependencies
-- Expected success cases
-- Expected failure cases
-- Performance considerations
-
-5. Security Considerations
-- Input validation requirements
-- Authentication/authorization checks
-- Data sanitization needs
-- Potential security vulnerabilities to test
-
-Please provide specific code examples where relevant to illustrate complex scenarios or edge cases.
-End your analysis with a summary of key testing priorities and potential implementation challenges.
-`;
-
-  return await llmClient.generateText(analysisPrompt);
+  return new Promise((resolve) => {
+    rl.question(`${question}\n`, (answer) => {
+      resolve(answer);
+    });
+  });
 }

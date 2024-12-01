@@ -2,6 +2,7 @@
 import { Command } from "commander";
 import { createInitCommand } from "./cli/commands/init";
 import { createGenerateCommand } from "./cli/commands/generate";
+import { createCleanCommand } from "./cli/commands/clean";
 import { version } from "../package.json";
 import dotenv from "dotenv";
 
@@ -16,6 +17,7 @@ async function main() {
   // Add commands
   program.addCommand(createInitCommand());
   program.addCommand(createGenerateCommand());
+  program.addCommand(createCleanCommand());
 
   // Parse command line arguments
   await program.parseAsync(process.argv);

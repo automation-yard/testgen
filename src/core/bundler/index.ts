@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import * as fs from "fs";
 import * as path from "path";
 import { BundlerResult, Method } from "../../types/bundler";
+import { writeDebugFile } from "../../utils/files";
 
 export class CodeBundler {
   private visitedFiles: Set<string> = new Set();
@@ -36,28 +37,22 @@ export class CodeBundler {
     const cleanDependenciesImports = this.cleanImports(dependenciesImports);
 
     if (process.env.DEBUG === "true") {
-      fs.writeFileSync("dependencies.txt", cleanDependenciesCode);
-      fs.writeFileSync(
-        "methods.txt",
+      writeDebugFile("dependencies", cleanDependenciesCode);
+      writeDebugFile(
+        "methods",
         methods.map((m: Method) => m.code).join("\n\n")
       );
-      fs.writeFileSync("inputFileCode.txt", inputFileCode);
-      fs.writeFileSync("inputFileImports.txt", inputFileImports.join("\n"));
-      fs.writeFileSync(
-        "dependenciesImports.txt",
-        cleanDependenciesImports.join("\n")
-      );
-      fs.writeFileSync(
-        "classImportStatements.txt",
-        classImportStatements.join("\n")
-      );
+      writeDebugFile("inputFileCode", inputFileCode);
+      writeDebugFile("inputFileImports", inputFileImports);
+      writeDebugFile("dependenciesImports", cleanDependenciesImports);
+      writeDebugFile("classImportStatements", classImportStatements);
     }
 
     const exportType = this.determineExportType(this.entryFilePath);
 
     return {
       inputFileCode,
-      dependenciesCode: cleanDependenciesCode,
+      dependenciesCode: inputFileImports.join("\n"),
       inputFileImports,
       dependenciesImports: cleanDependenciesImports,
       methods,
