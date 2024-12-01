@@ -1,7 +1,7 @@
-import path from "path";
-import { LLMClient } from "../../llm/types";
-import { javascriptPrompt, typescriptPrompt } from "../../prompts";
-import { ConfigLoader } from "../../config/loader";
+import path from 'path';
+import { LLMClient } from '../../llm/types';
+import { javascriptPrompt, typescriptPrompt } from '../../prompts';
+import { ConfigLoader } from '../../config/loader';
 
 export class TestGenerator {
   private inputFilePath!: string;
@@ -20,7 +20,7 @@ export class TestGenerator {
     dependenciesImports: string[],
     analysis: string,
     isJavaScript: boolean,
-    exportType: "default" | "named" | "unknown",
+    exportType: 'default' | 'named' | 'unknown',
     inputFilePath: string,
     fileName: string,
     classImportStatememts: string[]
@@ -35,9 +35,9 @@ export class TestGenerator {
       new Set([
         ...inputFileImports,
         ...dependenciesImports,
-        ...classImportStatememts,
+        ...classImportStatememts
       ])
-    ).join("\n");
+    ).join('\n');
 
     const prompt = this.buildPrompt({
       methodName,
@@ -48,7 +48,7 @@ export class TestGenerator {
       analysis,
       isJavaScript,
       exportType,
-      framework: config.framework,
+      framework: config.framework
     });
 
     let response = await this.llmClient.generateText(prompt);
@@ -60,13 +60,13 @@ export class TestGenerator {
     // Generate test file path in same directory as input file
     const inputDir = path.dirname(inputFilePath);
     const testFileName = `${fileName}.${methodName.toLowerCase()}.test.${
-      isJavaScript ? "js" : "ts"
+      isJavaScript ? 'js' : 'ts'
     }`;
     const testFilePath = path.join(inputDir, testFileName);
 
     return {
       code: response,
-      filePath: testFilePath,
+      filePath: testFilePath
     };
   }
 
@@ -78,7 +78,7 @@ export class TestGenerator {
     allImports: string;
     analysis: string;
     isJavaScript: boolean;
-    exportType: "default" | "named" | "unknown";
+    exportType: 'default' | 'named' | 'unknown';
     framework: string;
   }): string {
     const template = params.isJavaScript ? javascriptPrompt : typescriptPrompt;
@@ -93,11 +93,11 @@ export class TestGenerator {
 
     // Remove code blocks if present
     if (codeBlockRegex.test(response)) {
-      code = response.replace(codeBlockRegex, "$1");
+      code = response.replace(codeBlockRegex, '$1');
     }
 
     // Remove any markdown or extra text
-    code = code.replace(/^\s*[\*\-]\s+.*$/gm, ""); // Remove bullet points
+    code = code.replace(/^\s*[\*\-]\s+.*$/gm, ''); // Remove bullet points
     code = code.trim();
 
     return code;
@@ -112,34 +112,34 @@ export class TestGenerator {
 
     // Replace imports with correct relative paths
     return code.replace(/(from|require\()['"]\..*?['"]/g, (match) => {
-      const importType = match.startsWith("from") ? "from" : "require(";
+      const importType = match.startsWith('from') ? 'from' : 'require(';
       const importPath = match.match(/['"](.+?)['"]/)?.[1];
       if (!importPath) return match;
 
       // Get the import name from the full import statement
-      const importStatement = match.split("\n")[0];
+      const importStatement = match.split('\n')[0];
       const importNames = importStatement
         .match(/\{([^}]+)\}/)?.[1]
-        .split(",")
+        .split(',')
         .map((s) => s.trim());
 
       // Handle different types of imports
       if (
-        importPath.endsWith("/service") ||
+        importPath.endsWith('/service') ||
         importPath.includes(baseFilename)
       ) {
         // Main service file import
         return `${importType} './${baseFilename}'`;
       } else if (
         importNames?.some((name) =>
-          ["Product", "Order", "Customer"].includes(name)
+          ['Product', 'Order', 'Customer'].includes(name)
         )
       ) {
         // Models import
         return `${importType} './models'`;
       } else if (
         importNames?.some((name) =>
-          ["calculateDiscount", "sendOrderConfirmation"].includes(name)
+          ['calculateDiscount', 'sendOrderConfirmation'].includes(name)
         )
       ) {
         // Utils import

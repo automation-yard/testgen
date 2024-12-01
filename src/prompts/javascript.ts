@@ -1,5 +1,5 @@
-import { PromptParams } from "./typescript";
-import { getFrameworkRules } from "./frameworks";
+import { PromptParams } from './typescript';
+import { getFrameworkRules } from './frameworks';
 
 export const javascriptPrompt = (params: PromptParams): string => {
   const {
@@ -10,7 +10,7 @@ export const javascriptPrompt = (params: PromptParams): string => {
     allImports,
     analysis,
     exportType,
-    framework,
+    framework
   } = params;
 
   const frameworkRules = getFrameworkRules(framework);
@@ -28,7 +28,7 @@ Framework: ${frameworkRules.name}
 Testing Environment: Jest with JavaScript
 
 Required Imports:
-${frameworkRules.importStatements.join("\n")}
+${frameworkRules.importStatements.join('\n')}
 ${allImports}
 
 Code Analysis:
@@ -47,32 +47,32 @@ ${userContext}
 Generate comprehensive unit tests following these specific requirements:
 
 1. Framework-Specific Setup:
-${frameworkRules.testingModuleSetup || ""}
+${frameworkRules.testingModuleSetup || ''}
 
 2. Mocking Requirements:
-${frameworkRules.mockingPatterns.join("\n")}
+${frameworkRules.mockingPatterns.join('\n')}
 
 3. Test Structure:
-${frameworkRules.testStructure.join("\n")}
+${frameworkRules.testStructure.join('\n')}
 
 4. Special Considerations:
 Edge Cases:
-${frameworkRules.edgeCases.join("\n")}
+${frameworkRules.edgeCases.join('\n')}
 
 Best Practices:
-${frameworkRules.bestPractices.join("\n")}
+${frameworkRules.bestPractices.join('\n')}
 
 ${
   frameworkRules.dependencyInjection
     ? `
 5. Dependency Injection:
 Patterns:
-${frameworkRules.dependencyInjection.patterns.join("\n")}
+${frameworkRules.dependencyInjection.patterns.join('\n')}
 
 Mocking Strategy:
-${frameworkRules.dependencyInjection.mockingStrategy.join("\n")}
+${frameworkRules.dependencyInjection.mockingStrategy.join('\n')}
 `
-    : ""
+    : ''
 }
 
 ${
@@ -80,17 +80,17 @@ ${
     ? `
 6. Decorator Handling:
 Patterns:
-${frameworkRules.decorators.patterns.join("\n")}
+${frameworkRules.decorators.patterns.join('\n')}
 
 Testing Strategy:
-${frameworkRules.decorators.testingStrategy.join("\n")}
+${frameworkRules.decorators.testingStrategy.join('\n')}
 `
-    : ""
+    : ''
 }
 
 Begin with the test code immediately after receiving this prompt, with no additional text or formatting.
 Use the file naming convention: ${frameworkRules.testFileNaming.replace(
-    ".ts",
-    ".js"
+    '.ts',
+    '.js'
   )}`;
 };

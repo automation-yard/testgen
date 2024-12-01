@@ -1,10 +1,10 @@
-import { FrameworkRules } from "./types";
+import { FrameworkRules } from './types';
 
 export const nestJSRules: FrameworkRules = {
-  name: "NestJS",
+  name: 'NestJS',
   importStatements: [
     "import { Test, TestingModule } from '@nestjs/testing'",
-    "import { ModuleRef } from '@nestjs/core'",
+    "import { ModuleRef } from '@nestjs/core'"
   ],
 
   testingModuleSetup: `
@@ -15,86 +15,86 @@ export const nestJSRules: FrameworkRules = {
 - Get service instance from module.get()`,
 
   mockingPatterns: [
-    "Use jest.mock() for external modules and services",
-    "Create mock providers using useValue syntax",
-    "Use jest.spyOn() for method mocking",
-    "Implement partial mocks using Partial<Interface>",
-    "Mock dependency injection tokens",
+    'Use jest.mock() for external modules and services',
+    'Create mock providers using useValue syntax',
+    'Use jest.spyOn() for method mocking',
+    'Implement partial mocks using Partial<Interface>',
+    'Mock dependency injection tokens'
   ],
 
   dependencyInjection: {
     patterns: [
-      "Constructor-based injection",
-      "Property-based injection",
-      "Token-based injection",
+      'Constructor-based injection',
+      'Property-based injection',
+      'Token-based injection'
     ],
     mockingStrategy: [
-      "Mock all injected dependencies in provider array",
-      "Use useValue to provide mock implementations",
-      "Handle circular dependencies with forwardRef",
-      "Mock custom providers and injection tokens",
-    ],
+      'Mock all injected dependencies in provider array',
+      'Use useValue to provide mock implementations',
+      'Handle circular dependencies with forwardRef',
+      'Mock custom providers and injection tokens'
+    ]
   },
 
   decorators: {
     patterns: [
-      "@Injectable()",
-      "@Inject()",
-      "@Optional()",
-      "Custom parameter decorators",
+      '@Injectable()',
+      '@Inject()',
+      '@Optional()',
+      'Custom parameter decorators'
     ],
     testingStrategy: [
-      "Mock decorated properties",
-      "Test decorator behavior",
-      "Verify decorator metadata",
-      "Test optional dependencies",
-    ],
+      'Mock decorated properties',
+      'Test decorator behavior',
+      'Verify decorator metadata',
+      'Test optional dependencies'
+    ]
   },
 
-  testFileNaming: "[name].service.spec.ts",
+  testFileNaming: '[name].service.spec.ts',
 
   testStructure: [
     "describe('[ServiceName]', () => {",
-    "  let service: ServiceType;",
-    "  let module: TestingModule;",
-    "  let dependencyMocks;",
-    "",
-    "  beforeEach(async () => {",
-    "    const module: TestingModule = await Test.createTestingModule({",
-    "      providers: [...mockProviders]",
-    "    }).compile();",
-    "",
-    "    service = module.get<ServiceType>(ServiceType);",
-    "  });",
-    "",
-    "  afterEach(() => {",
-    "    jest.clearAllMocks();",
-    "  });",
-    "",
+    '  let service: ServiceType;',
+    '  let module: TestingModule;',
+    '  let dependencyMocks;',
+    '',
+    '  beforeEach(async () => {',
+    '    const module: TestingModule = await Test.createTestingModule({',
+    '      providers: [...mockProviders]',
+    '    }).compile();',
+    '',
+    '    service = module.get<ServiceType>(ServiceType);',
+    '  });',
+    '',
+    '  afterEach(() => {',
+    '    jest.clearAllMocks();',
+    '  });',
+    '',
     "  describe('[methodName]', () => {",
-    "    test cases...",
-    "  });",
-    "});",
+    '    test cases...',
+    '  });',
+    '});'
   ],
 
   edgeCases: [
-    "Handle circular dependencies",
-    "Test optional dependency scenarios",
-    "Test custom provider edge cases",
-    "Handle async initialization",
-    "Test lifecycle hooks",
-    "Handle dependency injection errors",
+    'Handle circular dependencies',
+    'Test optional dependency scenarios',
+    'Test custom provider edge cases',
+    'Handle async initialization',
+    'Test lifecycle hooks',
+    'Handle dependency injection errors'
   ],
 
   bestPractices: [
-    "Use TestingModule for dependency injection",
-    "Mock all external dependencies",
-    "Test both sync and async methods",
-    "Verify dependency method calls",
-    "Test error handling and edge cases",
-    "Clear mocks between tests",
-    "Use appropriate scope for providers",
-    "Test lifecycle hooks when present",
+    'Use TestingModule for dependency injection',
+    'Mock all external dependencies',
+    'Test both sync and async methods',
+    'Verify dependency method calls',
+    'Test error handling and edge cases',
+    'Clear mocks between tests',
+    'Use appropriate scope for providers',
+    'Test lifecycle hooks when present'
   ],
 
   analysisInstructions: `
@@ -163,5 +163,5 @@ Testing Considerations:
 - Entity factory patterns
 - Transaction handling
 - Exception testing patterns
-- Security testing scenarios`,
+- Security testing scenarios`
 };

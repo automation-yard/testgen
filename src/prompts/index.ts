@@ -1,2 +1,2 @@
-export { typescriptPrompt } from "./typescript";
-export { javascriptPrompt } from "./javascript";
+export { typescriptPrompt } from './typescript';
+export { javascriptPrompt } from './javascript';

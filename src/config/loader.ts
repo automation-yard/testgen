@@ -1,21 +1,21 @@
-import { cosmiconfig } from "cosmiconfig";
-import { z } from "zod";
-import { configSchema, defaultConfig, TestGenConfig } from "./schema";
-import path from "path";
+import { cosmiconfig } from 'cosmiconfig';
+import { z } from 'zod';
+import { configSchema, defaultConfig, TestGenConfig } from './schema';
+import path from 'path';
 
-const CONFIG_MODULE_NAME = "testgen";
+const CONFIG_MODULE_NAME = 'testgen';
 
 export class ConfigLoader {
   private explorer = cosmiconfig(CONFIG_MODULE_NAME, {
     searchPlaces: [
-      "package.json",
+      'package.json',
       `.${CONFIG_MODULE_NAME}rc`,
       `.${CONFIG_MODULE_NAME}rc.json`,
       `.${CONFIG_MODULE_NAME}rc.js`,
       `.${CONFIG_MODULE_NAME}rc.cjs`,
       `${CONFIG_MODULE_NAME}.config.js`,
-      `${CONFIG_MODULE_NAME}.config.cjs`,
-    ],
+      `${CONFIG_MODULE_NAME}.config.cjs`
+    ]
   });
 
   async loadConfig(cwd = process.cwd()): Promise<TestGenConfig> {
@@ -25,7 +25,7 @@ export class ConfigLoader {
 
       if (!result) {
         console.warn(
-          "No configuration file found. Using default configuration."
+          'No configuration file found. Using default configuration.'
         );
         return defaultConfig;
       }
@@ -35,7 +35,7 @@ export class ConfigLoader {
 
       return {
         ...defaultConfig,
-        ...config,
+        ...config
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -57,24 +57,24 @@ export class ConfigLoader {
 
   private formatZodError(error: z.ZodError): string {
     return error.errors
-      .map((err) => `  - ${err.path.join(".")}: ${err.message}`)
-      .join("\n");
+      .map((err) => `  - ${err.path.join('.')}: ${err.message}`)
+      .join('\n');
   }
 
   async initConfig(cwd = process.cwd()): Promise<void> {
     const configPath = path.join(cwd, `.${CONFIG_MODULE_NAME}rc.json`);
-    const fs = await import("fs/promises");
+    const fs = await import('fs/promises');
 
     try {
       await fs.access(configPath);
-      throw new Error("Configuration file already exists");
+      throw new Error('Configuration file already exists');
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw error;
       }
     }
 
     const configContent = JSON.stringify(defaultConfig, null, 2);
-    await fs.writeFile(configPath, configContent, "utf-8");
+    await fs.writeFile(configPath, configContent, 'utf-8');
   }
 }

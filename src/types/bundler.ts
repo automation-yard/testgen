@@ -1,4 +1,4 @@
-export type ExportType = "default" | "named" | "unknown";
+export type ExportType = 'default' | 'named' | 'unknown';
 
 export interface Method {
   name: string;

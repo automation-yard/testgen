@@ -1,24 +1,27 @@
-import * as ts from "typescript";
-import * as fs from "fs";
-import * as path from "path";
-import { BundlerResult, Method } from "../../types/bundler";
-import { writeDebugFile } from "../../utils/files";
+import * as ts from 'typescript';
+import * as fs from 'fs';
+import * as path from 'path';
+import { BundlerResult, Method } from '../../types/bundler';
+import { writeDebugFile } from '../../utils/files';
 
 export class CodeBundler {
   private visitedFiles: Set<string> = new Set();
   private entryFilePath: string;
   private methodName: string;
 
-  constructor(private entryFile: string, methodName?: string) {
+  constructor(
+    private entryFile: string,
+    methodName?: string
+  ) {
     this.entryFilePath = path.resolve(entryFile);
-    this.methodName = methodName || "";
+    this.methodName = methodName || '';
   }
 
   public bundle(): BundlerResult {
-    console.log(" bundle methodName", this.methodName);
-    const inputFileCode = fs.readFileSync(this.entryFilePath, "utf-8");
+    console.log(' bundle methodName', this.methodName);
+    const inputFileCode = fs.readFileSync(this.entryFilePath, 'utf-8');
     const inputFileImports = this.extractImports(this.entryFilePath);
-    const isJavaScript = path.extname(this.entryFilePath) === ".js";
+    const isJavaScript = path.extname(this.entryFilePath) === '.js';
     const classImportStatements = this.createClassImportStatement(
       this.entryFilePath,
       isJavaScript
@@ -29,44 +32,44 @@ export class CodeBundler {
     const methods = this.extractMethods(this.entryFilePath, this.methodName);
 
     let message: string | undefined;
-    if (dependenciesCode.trim() === "" && dependenciesImports.length === 0) {
-      message = "No local dependencies found for the entry file.";
+    if (dependenciesCode.trim() === '' && dependenciesImports.length === 0) {
+      message = 'No local dependencies found for the entry file.';
     }
 
     const cleanDependenciesCode = this.cleanCode(dependenciesCode);
     const cleanDependenciesImports = this.cleanImports(dependenciesImports);
 
-    if (process.env.DEBUG === "true") {
-      writeDebugFile("dependencies", cleanDependenciesCode);
+    if (process.env.DEBUG === 'true') {
+      writeDebugFile('dependencies', cleanDependenciesCode);
       writeDebugFile(
-        "methods",
-        methods.map((m: Method) => m.code).join("\n\n")
+        'methods',
+        methods.map((m: Method) => m.code).join('\n\n')
       );
-      writeDebugFile("inputFileCode", inputFileCode);
-      writeDebugFile("inputFileImports", inputFileImports);
-      writeDebugFile("dependenciesImports", cleanDependenciesImports);
-      writeDebugFile("classImportStatements", classImportStatements);
+      writeDebugFile('inputFileCode', inputFileCode);
+      writeDebugFile('inputFileImports', inputFileImports);
+      writeDebugFile('dependenciesImports', cleanDependenciesImports);
+      writeDebugFile('classImportStatements', classImportStatements);
     }
 
     const exportType = this.determineExportType(this.entryFilePath);
 
     return {
       inputFileCode,
-      dependenciesCode: inputFileImports.join("\n"),
+      dependenciesCode,
       inputFileImports,
       dependenciesImports: cleanDependenciesImports,
       methods,
       message,
       isJavaScript,
       exportType,
-      classImportStatements,
+      classImportStatements
     };
   }
 
   private determineExportType(
     filePath: string
-  ): "default" | "named" | "unknown" {
-    const sourceCode = fs.readFileSync(filePath, "utf-8");
+  ): 'default' | 'named' | 'unknown' {
+    const sourceCode = fs.readFileSync(filePath, 'utf-8');
     const sourceFile = ts.createSourceFile(
       filePath,
       sourceCode,
@@ -89,13 +92,13 @@ export class CodeBundler {
       }
     });
 
-    if (hasDefaultExport && !hasNamedExport) return "default";
-    if (hasNamedExport && !hasDefaultExport) return "named";
-    return "unknown";
+    if (hasDefaultExport && !hasNamedExport) return 'default';
+    if (hasNamedExport && !hasDefaultExport) return 'named';
+    return 'unknown';
   }
 
   private extractMethods(filePath: string, reqMethodName: string): Method[] {
-    const sourceCode = fs.readFileSync(filePath, "utf-8");
+    const sourceCode = fs.readFileSync(filePath, 'utf-8');
     const sourceFile = ts.createSourceFile(
       filePath,
       sourceCode,
@@ -120,7 +123,7 @@ export class CodeBundler {
             const fullName = `${className}.${methodName}`;
             let code = member.getFullText();
             // TODO: remove the following condition and instead run prettier on the code
-            if (code.startsWith("\n\n  ")) {
+            if (code.startsWith('\n\n  ')) {
               code = code.slice(4);
             }
             if (reqMethodName) {
@@ -187,12 +190,12 @@ export class CodeBundler {
   } {
     const absolutePath = path.resolve(filePath);
     if (this.visitedFiles.has(absolutePath)) {
-      return { dependenciesCode: "", dependenciesImports: [] };
+      return { dependenciesCode: '', dependenciesImports: [] };
     }
     this.visitedFiles.add(absolutePath);
 
-    const sourceCode = fs.readFileSync(absolutePath, "utf-8");
-    const isJavaScript = path.extname(absolutePath) === ".js";
+    const sourceCode = fs.readFileSync(absolutePath, 'utf-8');
+    const isJavaScript = path.extname(absolutePath) === '.js';
     const sourceFile = ts.createSourceFile(
       absolutePath,
       sourceCode,
@@ -201,7 +204,7 @@ export class CodeBundler {
       isJavaScript ? ts.ScriptKind.JS : ts.ScriptKind.TS
     );
 
-    let dependenciesCode = "";
+    let dependenciesCode = '';
     let dependenciesImports: string[] = [];
 
     const processNode = (node: ts.Node) => {
@@ -225,7 +228,7 @@ export class CodeBundler {
             path.dirname(this.entryFilePath),
             absolutePath
           )}\n`;
-          dependenciesCode += node.getFullText(sourceFile) + "\n\n";
+          dependenciesCode += node.getFullText(sourceFile) + '\n\n';
         }
       }
 
@@ -243,13 +246,13 @@ export class CodeBundler {
     dependenciesCode: string;
     dependenciesImports: string[];
   } {
-    let dependenciesCode = "";
+    let dependenciesCode = '';
     let dependenciesImports: string[] = [];
 
-    if (importPath.startsWith(".") || path.isAbsolute(importPath)) {
+    if (importPath.startsWith('.') || path.isAbsolute(importPath)) {
       let importedFilePath = importPath;
-      if (!importPath.endsWith(".ts") && !importPath.endsWith(".js")) {
-        const extensions = [".ts", ".js", "/index.ts", "/index.js"];
+      if (!importPath.endsWith('.ts') && !importPath.endsWith('.js')) {
+        const extensions = ['.ts', '.js', '/index.ts', '/index.js'];
         for (const ext of extensions) {
           const testPath = importPath + ext;
           const resolvedTestPath = path.resolve(
@@ -277,7 +280,7 @@ export class CodeBundler {
           path.dirname(this.entryFilePath),
           resolvedImportPath
         )}\n`;
-        dependenciesCode += result.dependenciesCode + "\n";
+        dependenciesCode += result.dependenciesCode + '\n';
         dependenciesImports.push(...result.dependenciesImports);
       }
     }
@@ -287,7 +290,7 @@ export class CodeBundler {
   }
 
   private extractImports(filePath: string): string[] {
-    const sourceCode = fs.readFileSync(filePath, "utf-8");
+    const sourceCode = fs.readFileSync(filePath, 'utf-8');
     const sourceFile = ts.createSourceFile(
       filePath,
       sourceCode,
@@ -310,18 +313,18 @@ export class CodeBundler {
     filePath: string,
     isJavaScript: boolean
   ): string[] {
-    const sourceCode = fs.readFileSync(filePath, "utf-8");
+    const sourceCode = fs.readFileSync(filePath, 'utf-8');
     const sourceFile = ts.createSourceFile(
       filePath,
       sourceCode,
       ts.ScriptTarget.Latest,
       true
     );
-    let className = "";
+    let className = '';
     const classImportStatememts: string[] = [];
     ts.forEachChild(sourceFile, (node) => {
       if (ts.isClassDeclaration(node)) {
-        className = node.name?.getText() || "";
+        className = node.name?.getText() || '';
         if (className) {
           if (isJavaScript) {
             classImportStatememts.push(
@@ -345,7 +348,7 @@ export class CodeBundler {
   }
 
   private cleanCode(code: string): string {
-    const lines = code.split("\n");
+    const lines = code.split('\n');
     const cleanedLines: string[] = [];
     let insideInterface = false;
     let insideFunction = false;
@@ -353,29 +356,29 @@ export class CodeBundler {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
-      if (line.startsWith("export interface") || line.startsWith("interface")) {
+      if (line.startsWith('export interface') || line.startsWith('interface')) {
         insideInterface = true;
         cleanedLines.push(line);
       } else if (
-        line.startsWith("export function") ||
-        line.startsWith("function")
+        line.startsWith('export function') ||
+        line.startsWith('function')
       ) {
         insideFunction = true;
         cleanedLines.push(line);
-      } else if (line === "}") {
+      } else if (line === '}') {
         insideInterface = false;
         insideFunction = false;
         cleanedLines.push(line);
       } else if (insideInterface || insideFunction) {
-        if (line && !line.startsWith("export")) {
-          cleanedLines.push("  " + line);
+        if (line && !line.startsWith('export')) {
+          cleanedLines.push('  ' + line);
         }
-      } else if (line && !line.startsWith("export")) {
+      } else if (line && !line.startsWith('export')) {
         cleanedLines.push(line);
       }
     }
 
-    return cleanedLines.join("\n").replace(/\n{3,}/g, "\n\n");
+    return cleanedLines.join('\n').replace(/\n{3,}/g, '\n\n');
   }
 
   private cleanImports(imports: string[]): string[] {

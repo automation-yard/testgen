@@ -1,60 +1,60 @@
-import { FrameworkRules } from "./types";
+import { FrameworkRules } from './types';
 
 export const reactRules: FrameworkRules = {
-  name: "React",
+  name: 'React',
   importStatements: [
     "import { render, screen, fireEvent } from '@testing-library/react'",
     "import userEvent from '@testing-library/user-event'",
-    "import { act } from 'react-dom/test-utils'",
+    "import { act } from 'react-dom/test-utils'"
   ],
 
   mockingPatterns: [
-    "Mock hooks using jest.mock()",
-    "Mock context providers",
-    "Mock child components",
-    "Mock event handlers",
-    "Mock API calls",
+    'Mock hooks using jest.mock()',
+    'Mock context providers',
+    'Mock child components',
+    'Mock event handlers',
+    'Mock API calls'
   ],
 
-  testFileNaming: "[name].test.tsx",
+  testFileNaming: '[name].test.tsx',
 
   testStructure: [
     "describe('[ComponentName]', () => {",
-    "  const mockProps = {};",
-    "  const mockHandlers = {};",
-    "",
-    "  beforeEach(() => {",
-    "    // Setup mocks and render component",
-    "  });",
-    "",
-    "  afterEach(() => {",
-    "    jest.clearAllMocks();",
-    "  });",
-    "",
+    '  const mockProps = {};',
+    '  const mockHandlers = {};',
+    '',
+    '  beforeEach(() => {',
+    '    // Setup mocks and render component',
+    '  });',
+    '',
+    '  afterEach(() => {',
+    '    jest.clearAllMocks();',
+    '  });',
+    '',
     "  describe('[behavior]', () => {",
-    "    test cases...",
-    "  });",
-    "});",
+    '    test cases...',
+    '  });',
+    '});'
   ],
 
   edgeCases: [
-    "Test component loading states",
-    "Handle async updates",
-    "Test error boundaries",
-    "Test side effects",
-    "Handle prop changes",
-    "Test cleanup on unmount",
+    'Test component loading states',
+    'Handle async updates',
+    'Test error boundaries',
+    'Test side effects',
+    'Handle prop changes',
+    'Test cleanup on unmount'
   ],
 
   bestPractices: [
-    "Use React Testing Library queries",
-    "Test user interactions",
-    "Verify component rendering",
-    "Test accessibility",
-    "Mock API calls",
-    "Test error states",
-    "Verify state updates",
-    "Test component lifecycle",
+    'Use React Testing Library queries',
+    'Test user interactions',
+    'Verify component rendering',
+    'Test accessibility',
+    'Mock API calls',
+    'Test error states',
+    'Verify state updates',
+    'Test component lifecycle'
   ],
 
   analysisInstructions: `
@@ -103,5 +103,5 @@ Testing Considerations:
 - Hook testing patterns
 - Async operation testing
 - Security testing scenarios
-- Integration test requirements`,
+- Integration test requirements`
 };

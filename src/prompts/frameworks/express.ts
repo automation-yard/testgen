@@ -1,7 +1,7 @@
-import { FrameworkRules } from "./types";
+import { FrameworkRules } from './types';
 
 export const expressRules: FrameworkRules = {
-  name: "Express",
+  name: 'Express',
   analysisInstructions: `
 For Express-specific patterns, analyze:
 
@@ -48,56 +48,56 @@ Testing Considerations:
 - Integration test requirements`,
   importStatements: [
     "import request from 'supertest'",
-    "import express from 'express'",
+    "import express from 'express'"
   ],
 
   mockingPatterns: [
-    "Mock request and response objects",
-    "Use jest.mock() for middleware",
-    "Mock express Router instances",
-    "Mock database connections",
-    "Spy on middleware functions",
+    'Mock request and response objects',
+    'Use jest.mock() for middleware',
+    'Mock express Router instances',
+    'Mock database connections',
+    'Spy on middleware functions'
   ],
 
-  testFileNaming: "[name].test.ts",
+  testFileNaming: '[name].test.ts',
 
   testStructure: [
     "describe('[ControllerName]', () => {",
-    "  let app: express.Application;",
-    "  let mockDependencies;",
-    "",
-    "  beforeEach(() => {",
-    "    app = express();",
-    "    // Setup middleware and routes",
-    "  });",
-    "",
-    "  afterEach(() => {",
-    "    jest.clearAllMocks();",
-    "  });",
-    "",
+    '  let app: express.Application;',
+    '  let mockDependencies;',
+    '',
+    '  beforeEach(() => {',
+    '    app = express();',
+    '    // Setup middleware and routes',
+    '  });',
+    '',
+    '  afterEach(() => {',
+    '    jest.clearAllMocks();',
+    '  });',
+    '',
     "  describe('[routeHandler]', () => {",
-    "    test cases...",
-    "  });",
-    "});",
+    '    test cases...',
+    '  });',
+    '});'
   ],
 
   edgeCases: [
-    "Test middleware error handling",
-    "Test route parameter validation",
-    "Handle async middleware",
-    "Test error middleware",
-    "Handle file uploads",
-    "Test streaming responses",
+    'Test middleware error handling',
+    'Test route parameter validation',
+    'Handle async middleware',
+    'Test error middleware',
+    'Handle file uploads',
+    'Test streaming responses'
   ],
 
   bestPractices: [
-    "Test middleware in isolation",
-    "Mock external services",
-    "Test request validation",
-    "Verify response structure",
-    "Test error handling middleware",
-    "Check HTTP status codes",
-    "Validate response headers",
-    "Test query parameters",
-  ],
+    'Test middleware in isolation',
+    'Mock external services',
+    'Test request validation',
+    'Verify response structure',
+    'Test error handling middleware',
+    'Check HTTP status codes',
+    'Validate response headers',
+    'Test query parameters'
+  ]
 };

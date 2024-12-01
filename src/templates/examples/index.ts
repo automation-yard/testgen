@@ -1,2 +1,2 @@
-export { typescriptExample } from "./typescript";
-export { javascriptExample } from "./javascript";
+export { typescriptExample } from './typescript';
+export { javascriptExample } from './javascript';

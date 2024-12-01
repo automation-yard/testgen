@@ -1,4 +1,4 @@
-import { FrameworkRules } from "./frameworks/types";
+import { FrameworkRules } from './frameworks/types';
 
 export interface AnalysisPromptParams {
   methodCode: string;
@@ -43,7 +43,7 @@ Please provide a detailed analysis in this structure:
 - Data requirements
 
 4. Framework-Specific Analysis
-${frameworkRules.analysisInstructions || ""}
+${frameworkRules.analysisInstructions || ''}
 
 Please ensure all dependencies are properly identified and analyzed for testing.
 End your analysis with a summary of key testing priorities and potential implementation challenges.`;
