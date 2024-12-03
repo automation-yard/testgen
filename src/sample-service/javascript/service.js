@@ -1,6 +1,6 @@
-import { calculateDiscount } from "./utils/discountCalculator.js";
-const { sendOrderConfirmation } = require("./utils/notificationService.js");
-import { Product, Order, Customer } from "./models/index.js";
+import { calculateDiscount } from './utils/discountCalculator.js';
+const { sendOrderConfirmation } = require('./utils/notificationService.js');
+import { Product, Order, Customer } from './models/index.js';
 
 export class OrderService {
   constructor(products, customer) {
@@ -17,7 +17,7 @@ export class OrderService {
       return {
         product,
         quantity: item.quantity,
-        total: product.price * item.quantity,
+        total: product.price * item.quantity
       };
     });
 
@@ -30,7 +30,7 @@ export class OrderService {
       subtotal,
       discount,
       total,
-      customer: this.customer,
+      customer: this.customer
     };
 
     sendOrderConfirmation(order);

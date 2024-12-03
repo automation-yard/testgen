@@ -1,4 +1,4 @@
-import { Customer, Order } from "./models";
+import { Customer, Order } from './models';
 
 export function calculateDiscount(amount: number, customer: Customer): number {
   let discount = 0;

@@ -1,13 +1,13 @@
 module.exports = {
-  testEnvironment: "node",
-  testMatch: ["**/*.test.ts", "**/*.test.js"],
+  testEnvironment: 'node',
+  testMatch: ['**/*.test.ts', '**/*.test.js'],
   collectCoverage: true,
-  coverageReporters: ["text-summary", "lcov"],
-  collectCoverageFrom: ["**/*.ts", "**/*.js"],
-  roots: ["<rootDir>/src/sample-service"],
+  coverageReporters: ['text-summary', 'lcov'],
+  collectCoverageFrom: ['**/*.ts', '**/*.js'],
+  roots: ['<rootDir>/src/sample-service'],
   transform: {
-    "^.+\\.ts$": "ts-jest",
-    "^.+\\.js$": "babel-jest",
+    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.js$': 'babel-jest'
   },
-  moduleFileExtensions: ["ts", "js", "json", "node"],
+  moduleFileExtensions: ['ts', 'js', 'json', 'node']
 };

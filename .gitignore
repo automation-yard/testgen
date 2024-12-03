@@ -3,8 +3,5 @@ dist/
 .env
 *.log
 coverage/
-dependencies.txt
-dependenciesImports.txt
-inputFileCode.txt
-inputFileImports.txt
-classImportStatements.txt
+*.debug.txt
+feedback/
