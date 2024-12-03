@@ -63,10 +63,18 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
     "maxTokens": 4096
   },
   "coverage": {
-    "statements": 80,
-    "branches": 80,
-    "functions": 80,
-    "lines": 80
+    "minimum": {
+      "statements": 80,
+      "branches": 80,
+      "functions": 80,
+      "lines": 80
+    },
+    "maxEnhancementAttempts": 3
+  },
+  "healing": {
+    "strategy": "conservative",
+    "maxRetriesForFix": 3,
+    "timeoutPerAttempt": 30000
   }
 }
 ```
@@ -82,10 +90,16 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
   - `temperature`: Model temperature (0-2)
   - `maxTokens`: Maximum tokens per request
 - `coverage`: Test coverage thresholds (optional)
-  - `statements`: Statement coverage threshold
-  - `branches`: Branch coverage threshold
-  - `functions`: Function coverage threshold
-  - `lines`: Line coverage threshold
+  - `minimum`: Minimum coverage thresholds
+    - `statements`: Statement coverage threshold
+    - `branches`: Branch coverage threshold
+    - `functions`: Function coverage threshold
+    - `lines`: Line coverage threshold
+  - `maxEnhancementAttempts`: Maximum enhancement attempts
+- `healing`: Test healing configuration (optional)
+  - `strategy`: Healing strategy ("conservative" | "aggressive")
+  - `maxRetriesForFix`: Maximum retries for fixing tests
+  - `timeoutPerAttempt`: Timeout per healing attempt (ms)
 
 ## Environment Variables
 
@@ -101,6 +115,12 @@ For OpenAI:
 
 ```bash
 OPENAI_API_KEY=your_api_key
+```
+
+For Qwen (via Hugging Face):
+
+```bash
+HUGGINGFACE_API_KEY=your_api_key
 ```
 
 For Development:
