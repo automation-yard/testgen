@@ -1,12 +1,15 @@
 import { HfInference } from '@huggingface/inference';
 import { LLMClient, LLMCompleteParams, LLMResponse } from './types';
 import { writeDebugFile } from '../utils/files';
+import { TestGenConfig } from '../config/schema';
 
 export class QwenClient implements LLMClient {
   private client: HfInference;
+  private config: TestGenConfig;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, config: TestGenConfig) {
     this.client = new HfInference(apiKey);
+    this.config = config;
   }
 
   public async generateText(prompt: string): Promise<string> {
@@ -14,8 +17,8 @@ export class QwenClient implements LLMClient {
       const response = await this.client.chatCompletion({
         model: 'Qwen/QwQ-32B-Preview',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.5,
-        max_tokens: 5000,
+        temperature: 0.2,
+        max_tokens: this.config.llm.maxTokens,
         stream: false
       });
 
@@ -35,8 +38,8 @@ export class QwenClient implements LLMClient {
     const response = await this.client.chatCompletion({
       model: params.model || 'Qwen/QwQ-32B-Preview',
       messages: [{ role: 'user', content: params.prompt }],
-      temperature: params?.temperature ?? 0,
-      max_tokens: params?.maxTokens ?? 5000,
+      temperature: params?.temperature ?? 0.2,
+      max_tokens: params?.maxTokens ?? this.config.llm.maxTokens,
       stream: false
     });
 

@@ -89,7 +89,7 @@ ${frameworkRules.decorators.testingStrategy.join('\n')}
 }
 
 Begin with the test code immediately after receiving this prompt, with no additional text or formatting.
-Use the file naming convention: ${frameworkRules.testFileNaming.replace(
+Strictly use the file naming convention as: ${frameworkRules.testFileNaming.replace(
     '.ts',
     '.js'
   )}`;

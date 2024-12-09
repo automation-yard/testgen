@@ -1,22 +1,23 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { TestHealer } from '..';
 import { TestErrorType } from '../../test-runner/types';
-import path from 'path';
-import fs from 'fs/promises';
+import { defaultConfig } from '../../../config/schema';
 
 describe('TestHealer', () => {
-  const testDir = path.join(__dirname, 'fixtures');
+  const testDir = path.join(__dirname, 'temp');
   const mockLLM = {
-    complete: jest.fn(),
-    generateText: jest.fn()
+    generateText: jest.fn(),
+    complete: jest.fn()
   };
 
   const config = {
     maxRetries: 3,
-    timeoutPerAttempt: 5000,
+    timeoutPerAttempt: 30000,
     healingStrategy: 'conservative' as const
   };
 
-  const healer = new TestHealer(config, mockLLM);
+  const healer = new TestHealer(config, mockLLM, defaultConfig);
 
   beforeAll(async () => {
     await fs.mkdir(testDir, { recursive: true });
@@ -24,6 +25,10 @@ describe('TestHealer', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    await fs.rm(testDir, { recursive: true, force: true });
   });
 
   test('should fix dependency errors', async () => {
@@ -152,9 +157,5 @@ describe('TestHealer', () => {
     expect(result.healingAttempts).toHaveLength(2);
     expect(result.healingAttempts[0].success).toBe(false);
     expect(result.healingAttempts[1].success).toBe(true);
-  });
-
-  afterAll(async () => {
-    await fs.rm(testDir, { recursive: true, force: true });
   });
 });

@@ -11,13 +11,13 @@ interface CleanOptions {
 export function createCleanCommand(): Command {
   const command = new Command('clean')
     .description('Remove debug files and optionally generated test files')
-    .option('-f, --force', 'Force deletion without DEBUG flag')
+    .option('-f, --force', 'Force deletion without DEBUG_MODE flag')
     .option('-t, --tests', 'Also remove generated test files')
     .action(async (options: CleanOptions) => {
       try {
-        if (!process.env.DEBUG && !options.force) {
+        if (!process.env.DEBUG_MODE && !options.force) {
           throw new Error(
-            'Clean command is only available when DEBUG=true or with --force flag'
+            'Clean command is only available when DEBUG_MODE=true or with --force flag'
           );
         }
 

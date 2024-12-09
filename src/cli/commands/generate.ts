@@ -32,31 +32,39 @@ export function createGenerateCommand(): Command {
         const configLoader = new ConfigLoader();
         const config = await configLoader.loadConfig();
 
-        // Initialize LLM client
+        // Get LLM provider and API key
         const provider = (options.provider ||
           config.llm.provider) as LLMProvider;
-        const apiKey =
-          options.apiKey || process.env[`${provider.toUpperCase()}_API_KEY`];
+        let apiKey = options.apiKey;
+
         if (!apiKey) {
-          throw new Error(
-            `No API key provided for ${provider}. Set ${provider.toUpperCase()}_API_KEY environment variable or use --api-key option.`
-          );
+          // Try to get API key from environment variables
+          const envVar = `${provider.toUpperCase()}_API_KEY`;
+          apiKey = process.env[envVar];
+
+          if (!apiKey) {
+            console.error(
+              `No API key provided. Please provide it via --api-key option or ${envVar} environment variable`
+            );
+            process.exit(1);
+          }
         }
 
-        const llmClient = createLLMClient(provider, apiKey);
+        const llmClient = createLLMClient(provider, apiKey, config);
         const spinner = ora('Bundling code...').start();
 
         // Initialize healing and coverage services
         const testHealer = createTestHealer(
           {
             maxRetries: config.healing?.maxRetriesForFix || 3,
-            timeoutPerAttempt: 30000,
+            timeoutPerAttempt: config.healing?.timeoutPerAttempt || 30000,
             healingStrategy: config.healing?.strategy || 'conservative'
           },
-          llmClient
+          llmClient,
+          config
         );
 
-        const coverageManager = createCoverageManager(llmClient);
+        const coverageManager = createCoverageManager(llmClient, config);
 
         // Bundle the code
         const entryFilePath = path.resolve(file);

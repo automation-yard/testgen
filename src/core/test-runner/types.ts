@@ -33,4 +33,5 @@ export interface TestRunOptions {
   timeout?: number;
   env?: Record<string, string>;
   collectCoverage?: boolean;
+  framework?: 'react' | 'nextjs' | 'express' | 'nestjs';
 }

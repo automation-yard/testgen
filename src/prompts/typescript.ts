@@ -99,5 +99,5 @@ ${frameworkRules.decorators.testingStrategy.join('\n')}
 }
 
 Begin with the test code immediately after receiving this prompt, with no additional text or formatting. Strictly no explanation. Just output the final code.
-Use the file naming convention: ${frameworkRules.testFileNaming}`;
+Strictly use the file naming convention as: ${frameworkRules.testFileNaming}`;
 };

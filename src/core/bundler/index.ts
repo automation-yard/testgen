@@ -39,7 +39,7 @@ export class CodeBundler {
     const cleanDependenciesCode = this.cleanCode(dependenciesCode);
     const cleanDependenciesImports = this.cleanImports(dependenciesImports);
 
-    if (process.env.DEBUG === 'true') {
+    if (process.env.DEBUG_MODE === 'true') {
       writeDebugFile('dependencies', cleanDependenciesCode);
       writeDebugFile(
         'methods',

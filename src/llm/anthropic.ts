@@ -1,17 +1,22 @@
 import AI from '@anthropic-ai/sdk';
 import { LLMClient, LLMCompleteParams, LLMResponse } from './types';
+import { writeDebugFile } from '../utils/files';
+import { TestGenConfig } from '../config/schema';
 
 export class AnthropicClient implements LLMClient {
   private client: AI;
+  private config: TestGenConfig;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, config: TestGenConfig) {
     this.client = new AI({ apiKey });
+    this.config = config;
   }
 
   public async generateText(prompt: string): Promise<string> {
+    writeDebugFile('anthropic-prompt', prompt);
     const response = await this.client.messages.create({
       model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4096,
+      max_tokens: this.config.llm.maxTokens,
       temperature: 0,
       messages: [{ role: 'user', content: prompt }]
     });
@@ -31,7 +36,7 @@ export class AnthropicClient implements LLMClient {
   public async complete(params: LLMCompleteParams): Promise<LLMResponse> {
     const response = await this.client.messages.create({
       model: params.model || 'claude-3-5-sonnet-20241022',
-      max_tokens: params.maxTokens ?? 4096,
+      max_tokens: params.maxTokens ?? this.config.llm.maxTokens,
       temperature: params.temperature ?? 0,
       messages: [{ role: 'user', content: params.prompt }]
     });

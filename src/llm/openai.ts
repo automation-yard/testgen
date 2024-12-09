@@ -1,11 +1,14 @@
 import OpenAI from 'openai';
 import { LLMClient, LLMCompleteParams, LLMResponse } from './types';
+import { TestGenConfig } from '../config/schema';
 
 export class OpenAIClient implements LLMClient {
   private client: OpenAI;
+  private config: TestGenConfig;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, config: TestGenConfig) {
     this.client = new OpenAI({ apiKey });
+    this.config = config;
   }
 
   public async generateText(prompt: string): Promise<string> {
@@ -13,7 +16,7 @@ export class OpenAIClient implements LLMClient {
       model: 'gpt-4-1106-preview',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0,
-      max_tokens: 4096,
+      max_tokens: this.config.llm.maxTokens,
       n: 1,
       stop: null
     });
@@ -30,7 +33,7 @@ export class OpenAIClient implements LLMClient {
       model: params.model || 'gpt-4-1106-preview',
       messages: [{ role: 'user', content: params.prompt }],
       temperature: params.temperature ?? 0,
-      max_tokens: params.maxTokens ?? 4096,
+      max_tokens: params.maxTokens ?? this.config.llm.maxTokens,
       n: 1,
       stop: null
     });

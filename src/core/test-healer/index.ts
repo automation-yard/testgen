@@ -9,11 +9,13 @@ import { buildHealingPrompt } from './prompt';
 import { testRunner } from '../test-runner';
 import { LLMClient } from '../../llm/types';
 import { writeDebugFile } from '../../utils/files';
+import { TestGenConfig } from '../../config/schema';
 
 export class TestHealer {
   constructor(
     private readonly config: HealingConfig,
-    private readonly llm: LLMClient
+    private readonly llm: LLMClient,
+    private readonly testGenConfig: TestGenConfig
   ) {}
 
   async healTest(input: TestHealingInput): Promise<TestHealingResult> {
@@ -43,7 +45,7 @@ export class TestHealer {
         const response = await this.llm.complete({
           prompt,
           temperature: 0.2, // Lower temperature for more focused fixes
-          maxTokens: 2000 // Ensure enough tokens for complete test file
+          maxTokens: this.testGenConfig.llm.maxTokens
         });
 
         const fixedTestCode = response.content;
@@ -119,7 +121,8 @@ export class TestHealer {
 // Export a factory function
 export function createTestHealer(
   config: HealingConfig,
-  llm: LLMClient
+  llm: LLMClient,
+  testGenConfig: TestGenConfig
 ): TestHealer {
-  return new TestHealer(config, llm);
+  return new TestHealer(config, llm, testGenConfig);
 }

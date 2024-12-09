@@ -22,7 +22,7 @@ export const configSchema = z.object({
   // Test Configuration
   testFilePattern: z
     .string()
-    .default('${filename}.test.${ext}')
+    .default('${filename}.spec.${ext}')
     .describe(
       'Pattern for generated test files. Variables: ${filename}, ${ext}'
     ),
@@ -76,7 +76,7 @@ export const defaultConfig: TestGenConfig = {
   llm: {
     provider: 'anthropic',
     temperature: 0,
-    maxTokens: 4096
+    maxTokens: 8190 // 8192 is the max tokens for anthropic
   },
   coverage: {
     minimum: {

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 export function writeDebugFile(name: string, content: string | string[]): void {
-  if (process.env.DEBUG !== 'true') return;
+  if (process.env.DEBUG_MODE !== 'true') return;
 
   const fileName = `${name}.debug.txt`;
   const fileContent = Array.isArray(content) ? content.join('\n') : content;

@@ -57,33 +57,54 @@ export function parseJestOutput(output: string): TestError[] {
 function determineErrorType(errorLine: string): TestErrorType {
   const lowerError = errorLine.toLowerCase();
 
+  // Syntax errors
   if (
-    lowerError.includes('cannot find module') ||
-    lowerError.includes('is not defined')
-  ) {
-    return TestErrorType.DEPENDENCY;
-  }
-
-  if (
-    lowerError.includes('syntax') ||
-    lowerError.includes('unexpected token')
+    lowerError.includes('unexpected token') ||
+    lowerError.includes('unexpected end of input') ||
+    lowerError.includes('unexpected identifier') ||
+    lowerError.includes('syntax error')
   ) {
     return TestErrorType.SYNTAX;
   }
 
-  if (lowerError.includes('expect(') || lowerError.includes('assertion')) {
+  // Dependency errors
+  if (
+    lowerError.includes('cannot find module') ||
+    lowerError.includes('module not found') ||
+    lowerError.includes('is not defined') ||
+    lowerError.includes('reference error')
+  ) {
+    return TestErrorType.DEPENDENCY;
+  }
+
+  // Assertion errors
+  if (
+    lowerError.includes('expected') ||
+    lowerError.includes('assertion') ||
+    lowerError.includes('expect(') ||
+    lowerError.includes('matcher') ||
+    lowerError.includes('received')
+  ) {
     return TestErrorType.ASSERTION;
   }
 
-  if (lowerError.includes('timeout')) {
-    return TestErrorType.TIMEOUT;
-  }
-
+  // Runtime errors
   if (
-    lowerError.includes('runtime error') ||
-    lowerError.includes('type error')
+    lowerError.includes('type error') ||
+    lowerError.includes('cannot read property') ||
+    lowerError.includes('is not a function') ||
+    lowerError.includes('undefined is not an object')
   ) {
     return TestErrorType.RUNTIME;
+  }
+
+  // Timeout errors
+  if (
+    lowerError.includes('timeout') ||
+    lowerError.includes('timed out') ||
+    lowerError.includes('async callback was not invoked')
+  ) {
+    return TestErrorType.TIMEOUT;
   }
 
   return TestErrorType.UNKNOWN;
