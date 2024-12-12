@@ -12,6 +12,7 @@ import { buildAnalysisPrompt } from '../../prompts/analysis';
 import { writeDebugFile, writeTestFile } from '../../utils/files';
 import { CoverageResult } from '../../core/coverage/types';
 import { createLLMClient, LLMProvider } from '../../llm/factory';
+import { testSetupVerifier } from '../../core/test-setup';
 import ora from 'ora';
 import path from 'path';
 import * as readline from 'readline';
@@ -26,11 +27,36 @@ export function createGenerateCommand(): Command {
       'LLM provider (anthropic, openai, or qwen)'
     )
     .option('-k, --api-key <key>', 'API key for the LLM provider')
+    .option(
+      '-f, --force',
+      'Force test generation even if test setup is incomplete'
+    )
     .action(async (file: string, options: GenerateCommandOptions) => {
       try {
         // Load configuration
         const configLoader = new ConfigLoader();
         const config = await configLoader.loadConfig();
+
+        // Verify test setup
+        const setupResult = await testSetupVerifier.verifySetup(config);
+        if (!setupResult.isReady && !options.force) {
+          console.error(testSetupVerifier.getSetupInstructions(setupResult));
+          console.error(
+            '\nUse --force to generate tests anyway, but they may not run correctly.'
+          );
+          process.exit(1);
+        }
+
+        if (!setupResult.isReady && options.force) {
+          console.warn(
+            '\nWarning: Test setup is incomplete. Generated tests may not run correctly.'
+          );
+          console.warn('Missing requirements:');
+          setupResult.missingRequirements.forEach((req) => {
+            console.warn(`  - ${req.name}`);
+          });
+          console.warn('\nProceeding with test generation...\n');
+        }
 
         // Get LLM provider and API key
         const provider = (options.provider ||

@@ -25,7 +25,7 @@ export class CoverageManager {
 
     let attemptNumber = 1
     let isEnhanced = this.isCoverageSufficient(currentCoverage, input.config.minimumCoverage)
-    console.log('isEnhanced', isEnhanced, currentCoverage, input.config.minimumCoverage)
+   
     while (!isEnhanced && attemptNumber <= input.config.maxEnhancementAttempts) {
       // Build enhancement prompt
       const prompt = buildCoveragePrompt({

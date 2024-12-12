@@ -59,7 +59,8 @@ export class TestGenerator {
 
     // Generate test file path in same directory as input file
     const inputDir = path.dirname(inputFilePath);
-    const testFileName = `${fileName}.${methodName.toLowerCase()}.test.${
+    console.log(config.testFilePattern);
+    const testFileName = `${fileName}.${methodName.toLowerCase()}.spec.${
       isJavaScript ? 'js' : 'ts'
     }`;
     const testFilePath = path.join(inputDir, testFileName);
