@@ -1,8 +1,11 @@
-import { calculateDiscount, sendOrderConfirmation } from "./utils";
-import { Product, Order, Customer } from "./models";
+import { calculateDiscount, sendOrderConfirmation } from './utils';
+import { Product, Order, Customer } from './models';
 
 export class OrderService {
-  constructor(private products: Product[], private customer: Customer) {}
+  constructor(
+    private products: Product[],
+    private customer: Customer
+  ) {}
 
   public createOrder(
     orderItems: { productId: number; quantity: number }[]
@@ -15,7 +18,7 @@ export class OrderService {
       return {
         product,
         quantity: item.quantity,
-        total: product.price * item.quantity,
+        total: product.price * item.quantity
       };
     });
 
@@ -28,7 +31,7 @@ export class OrderService {
       subtotal,
       discount,
       total,
-      customer: this.customer,
+      customer: this.customer
     };
     sendOrderConfirmation(order);
     return order;

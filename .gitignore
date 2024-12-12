@@ -2,9 +2,6 @@ node_modules/
 dist/
 .env
 *.log
-coverage/
-dependencies.txt
-dependenciesImports.txt
-inputFileCode.txt
-inputFileImports.txt
-classImportStatements.txt
+/coverage
+*.debug.txt
+feedback/
