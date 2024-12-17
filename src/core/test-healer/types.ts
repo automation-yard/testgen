@@ -31,6 +31,6 @@ export interface HealingPromptParams {
 
 export interface HealingConfig {
   maxRetries: number;
-  timeoutPerAttempt: number;
+  timeoutPerAttempt: number | undefined;
   healingStrategy: 'aggressive' | 'conservative';
 }

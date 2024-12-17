@@ -12,8 +12,13 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.0.5",
+    "@ai-sdk/google": "^1.0.9",
+    "@ai-sdk/mistral": "^1.0.5",
+    "@ai-sdk/openai": "^1.0.8",
     "@anthropic-ai/sdk": "^0.31.0",
     "@huggingface/inference": "^2.8.1",
+    "ai": "^4.0.14",
     "commander": "^11.1.0",
     "cosmiconfig": "^9.0.0",
     "dotenv": "^16.4.5",

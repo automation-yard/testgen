@@ -39,11 +39,7 @@ export class CoverageManager {
       })
 
       // Get enhanced test from LLM
-      const response = await this.llm.complete({
-        prompt,
-        temperature: 0.3,
-        maxTokens: this.testGenConfig.llm.maxTokens
-      })
+      const response = await this.llm.generateText(prompt);
 
       const enhancedTestCode = response.content
 

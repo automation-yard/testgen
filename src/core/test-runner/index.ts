@@ -57,7 +57,7 @@ export class TestRunner {
           NODE_ENV: 'test',
           JEST_COVERAGE_DIR: coverageDir // Pass coverage dir to Jest
         },
-        timeout: options.timeout || 30000
+        timeout: options.timeout
       });
 
       // Cleanup temp config

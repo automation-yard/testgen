@@ -61,7 +61,8 @@ describe('TestHealer', () => {
     );
 
     // Mock LLM to provide a fix
-    mockLLM.complete.mockResolvedValueOnce(`
+    mockLLM.generateText.mockResolvedValueOnce({
+      content: `
       import { TestService } from './service'
       
       describe('TestService', () => {
@@ -72,7 +73,8 @@ describe('TestHealer', () => {
           expect(mockDep.call).toHaveBeenCalled()
         })
       })
-    `);
+    `
+    });
 
     const result = await healer.healTest({
       originalServiceFile: serviceFile,
@@ -89,7 +91,7 @@ describe('TestHealer', () => {
     });
 
     expect(result.isFixed).toBe(true);
-    expect(mockLLM.complete).toHaveBeenCalledTimes(1);
+    expect(mockLLM.generateText).toHaveBeenCalledTimes(1);
     expect(result.healingAttempts).toHaveLength(1);
     expect(result.healingAttempts[0].success).toBe(true);
   });
@@ -125,8 +127,10 @@ describe('TestHealer', () => {
     );
 
     // Mock LLM to provide fixes
-    mockLLM.complete.mockResolvedValueOnce('invalid fix')
-      .mockResolvedValueOnce(`
+    mockLLM.generateText
+      .mockResolvedValueOnce('invalid fix')
+      .mockResolvedValueOnce({
+        content: `
         import { TestService } from './service2'
         
         describe('TestService', () => {
@@ -136,7 +140,8 @@ describe('TestHealer', () => {
             expect(result).toBe('TEST')
           })
         })
-      `);
+      `
+      });
 
     const result = await healer.healTest({
       originalServiceFile: serviceFile,
@@ -153,7 +158,7 @@ describe('TestHealer', () => {
     });
 
     expect(result.isFixed).toBe(true);
-    expect(mockLLM.complete).toHaveBeenCalledTimes(2);
+    expect(mockLLM.generateText).toHaveBeenCalledTimes(2);
     expect(result.healingAttempts).toHaveLength(2);
     expect(result.healingAttempts[0].success).toBe(false);
     expect(result.healingAttempts[1].success).toBe(true);
