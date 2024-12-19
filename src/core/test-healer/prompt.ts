@@ -47,7 +47,7 @@ Result: ${attempt.success ? 'Success' : 'Failed'}
 Please provide a fix for this test. Focus on:
 ${getErrorTypeSpecificInstructions(error.type)}
 
-Respond with ONLY the complete fixed test code. Do not include any explanations or markdown formatting.`;
+Begin with the test code immediately after receiving this prompt, with no additional text or formatting. Strictly no explanation. Just output the final code.`;
 
   return basePrompt;
 }

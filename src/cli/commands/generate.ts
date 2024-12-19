@@ -76,14 +76,14 @@ export function createGenerateCommand(): Command {
           }
         }
 
-        const llmClient = createLLMClient(provider, apiKey, config);
+        const llmClient = createLLMClient(apiKey, config);
         const spinner = ora('Bundling code...').start();
 
         // Initialize healing and coverage services
         const testHealer = createTestHealer(
           {
             maxRetries: config.healing?.maxRetriesForFix || 3,
-            timeoutPerAttempt: config.healing?.timeoutPerAttempt || 30000,
+            timeoutPerAttempt: config.healing?.timeoutPerAttempt,
             healingStrategy: config.healing?.strategy || 'conservative'
           },
           llmClient,
@@ -132,7 +132,8 @@ export function createGenerateCommand(): Command {
             frameworkRules
           });
 
-          const analysis = await llmClient.generateText(analysisPrompt);
+          const analysisResponse = await llmClient.generateText(analysisPrompt);
+          const analysis = analysisResponse.content;
           writeDebugFile(`analysis_${method.name}`, analysis);
           writeDebugFile(`analysis_prompt_${method.name}`, analysisPrompt);
           spinner.succeed(`Analysis complete for ${method.name}`);
@@ -189,30 +190,30 @@ export function createGenerateCommand(): Command {
           }
 
           // Enhance coverage if needed
-          spinner.start('Checking test coverage...');
-          const coverageResult = await coverageManager.enhanceCoverage({
-            targetFile: file,
-            testFile,
-            currentCoverage: parseCoverageFromResult(initialTestResult),
-            config: {
-              minimumCoverage: config.coverage?.minimum || {
-                statements: 80,
-                branches: 80,
-                functions: 80,
-                lines: 80
-              },
-              maxEnhancementAttempts:
-                config.coverage?.maxEnhancementAttempts || 3
-            }
-          });
+          // spinner.start('Checking test coverage...');
+          // const coverageResult = await coverageManager.enhanceCoverage({
+          //   targetFile: file,
+          //   testFile,
+          //   currentCoverage: parseCoverageFromResult(initialTestResult),
+          //   config: {
+          //     minimumCoverage: config.coverage?.minimum || {
+          //       statements: 80,
+          //       branches: 80,
+          //       functions: 80,
+          //       lines: 80
+          //     },
+          //     maxEnhancementAttempts:
+          //       config.coverage?.maxEnhancementAttempts || 3
+          //   }
+          // });
 
-          if (!coverageResult.isEnhanced) {
-            spinner.warn('Could not achieve minimum coverage requirements');
-            console.log('Final coverage:', coverageResult.finalCoverage);
-          } else {
-            spinner.succeed('Successfully enhanced test coverage');
-            console.log('Final coverage:', coverageResult.finalCoverage);
-          }
+          // if (!coverageResult.isEnhanced) {
+          //   spinner.warn('Could not achieve minimum coverage requirements');
+          //   console.log('Final coverage:', coverageResult.finalCoverage);
+          // } else {
+          //   spinner.succeed('Successfully enhanced test coverage');
+          //   console.log('Final coverage:', coverageResult.finalCoverage);
+          // }
         }
       } catch (error) {
         console.error(

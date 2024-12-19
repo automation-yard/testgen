@@ -10,6 +10,9 @@ import { testRunner } from '../test-runner';
 import { LLMClient } from '../../llm/types';
 import { writeDebugFile } from '../../utils/files';
 import { TestGenConfig } from '../../config/schema';
+import ora from 'ora';
+import { TestGenerator } from '../generator';
+import { extractCode } from '../../utils/format';
 
 export class TestHealer {
   constructor(
@@ -26,6 +29,7 @@ export class TestHealer {
       'utf-8'
     );
 
+    const spinner = ora();
     // Try fixing each error
     for (const error of input.testRunError) {
       let isErrorFixed = false;
@@ -42,19 +46,19 @@ export class TestHealer {
         writeDebugFile(`healing-prompt-${attemptNumber}`, prompt);
 
         // Get fix from LLM
-        const response = await this.llm.complete({
-          prompt,
-          temperature: 0.2, // Lower temperature for more focused fixes
-          maxTokens: this.testGenConfig.llm.maxTokens
-        });
-
-        const fixedTestCode = response.content;
+        spinner.start(`Healing attempt ${attemptNumber}`);
+        const response = await this.llm.generateText(prompt);
+        const fixedTestCode = extractCode(response.content);
 
         // Apply fix
         await fs.writeFile(input.generatedTestFile, fixedTestCode);
-        writeDebugFile(`healing-result-${attemptNumber}`, fixedTestCode);
+        writeDebugFile(
+          `healing-result-${attemptNumber}`,
+          JSON.stringify(response, null, 2)
+        );
 
         // Run test to verify fix
+        spinner.start('Re-running healed test...');
         const testResult = await testRunner.runTest({
           testFile: input.generatedTestFile,
           timeout: this.config.timeoutPerAttempt
@@ -76,12 +80,16 @@ export class TestHealer {
         if (testResult.success) {
           isErrorFixed = true;
           currentTestCode = fixedTestCode;
+          spinner.succeed('Test passed');
         } else if (this.config.healingStrategy === 'conservative') {
           // In conservative mode, stop if fix introduces new errors
           const hasNewErrors = testResult.errors?.some(
             (newError) => !this.isSameError(newError, error)
           );
-          if (hasNewErrors) break;
+          if (hasNewErrors) {
+            spinner.fail('Fix introduced new errors');
+            break;
+          }
         }
 
         attemptNumber++;

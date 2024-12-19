@@ -51,22 +51,23 @@ export class TestGenerator {
       framework: config.framework
     });
 
-    let response = await this.llmClient.generateText(prompt);
+    const response = await this.llmClient.generateText(prompt);
+    let code = response.content;
 
     // Post-process the response
-    response = this.extractCode(response);
-    response = this.replacePlaceholderPaths(response);
+    code = this.extractCode(code);
+    code = this.replacePlaceholderPaths(code);
 
     // Generate test file path in same directory as input file
     const inputDir = path.dirname(inputFilePath);
-    console.log(config.testFilePattern);
+
     const testFileName = `${fileName}.${methodName.toLowerCase()}.spec.${
       isJavaScript ? 'js' : 'ts'
     }`;
     const testFilePath = path.join(inputDir, testFileName);
 
     return {
-      code: response,
+      code,
       filePath: testFilePath
     };
   }

@@ -10,7 +10,7 @@ const frameworkEnum = z.enum([
 
 const languageEnum = z.enum(['javascript', 'typescript']);
 
-const llmProviderEnum = z.enum(['anthropic', 'openai', 'qwen']);
+const llmProviderEnum = z.enum(['anthropic', 'openai', 'qwen', 'google']);
 
 const healingStrategyEnum = z.enum(['aggressive', 'conservative']);
 
@@ -31,8 +31,9 @@ export const configSchema = z.object({
   llm: z.object({
     provider: llmProviderEnum.default('anthropic'),
     model: z.string().optional(),
-    temperature: z.number().min(0).max(2).default(0),
-    maxTokens: z.number().positive().default(4096)
+    temperature: z.number().min(0).max(2).default(0.7),
+    maxTokens: z.number().positive().optional(),
+    apiKey: z.string().optional()
   }),
 
   // Custom Prompts (optional)
@@ -61,7 +62,7 @@ export const configSchema = z.object({
     .object({
       strategy: healingStrategyEnum.default('conservative'),
       maxRetriesForFix: z.number().positive().default(3),
-      timeoutPerAttempt: z.number().positive().default(30000)
+      timeoutPerAttempt: z.number().positive().optional()
     })
     .optional()
 });
@@ -76,7 +77,8 @@ export const defaultConfig: TestGenConfig = {
   llm: {
     provider: 'anthropic',
     temperature: 0,
-    maxTokens: 8190 // 8192 is the max tokens for anthropic
+    maxTokens: undefined, // 8192 is the max tokens for anthropic
+    apiKey: ''
   },
   coverage: {
     minimum: {
@@ -89,7 +91,6 @@ export const defaultConfig: TestGenConfig = {
   },
   healing: {
     strategy: 'conservative',
-    maxRetriesForFix: 3,
-    timeoutPerAttempt: 30000
+    maxRetriesForFix: 3
   }
 };

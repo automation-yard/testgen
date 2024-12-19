@@ -1,13 +1,7 @@
-export interface LLMClient {
-  generateText(prompt: string): Promise<string>;
-  complete(params: LLMCompleteParams): Promise<LLMResponse>;
-}
+import { Message } from 'ai';
 
-export interface LLMCompleteParams {
-  prompt: string;
-  temperature?: number;
-  maxTokens?: number;
-  model?: string;
+export interface LLMClient {
+  generateText(prompt: string): Promise<LLMResponse>;
 }
 
 export interface LLMResponse {
@@ -18,4 +12,10 @@ export interface LLMResponse {
     completionTokens: number;
     totalTokens: number;
   };
+}
+
+export interface LLMMessage extends Message {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+  name?: string;
 }
