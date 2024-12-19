@@ -10,6 +10,8 @@ interface JestConfig {
   coverageDirectory?: string;
   rootDir?: string;
   transformIgnorePatterns?: string[];
+  globals?: Record<string, any>;
+  setupFiles?: string[];
 }
 
 const baseConfig: JestConfig = {
@@ -77,5 +79,24 @@ export const defaultJestConfigs: Record<string, JestConfig> = {
       ...baseConfig.moduleNameMapper,
       '^@/(.*)$': '<rootDir>/src/$1'
     }
+  },
+
+  nodejs: {
+    ...baseConfig,
+    testEnvironment: 'node',
+    testMatch: ['**/__tests__/**/*.[jt]s', '**/?(*.)+(spec|test).[jt]s'],
+    moduleFileExtensions: ['js', 'json', 'ts', 'node'],
+    transform: {
+      '^.+\\.(t|j)s$': '@swc/jest'
+    },
+    moduleNameMapper: {
+      '^@/(.*)$': '<rootDir>/src/$1'
+    },
+    globals: {
+      'ts-jest': {
+        tsconfig: 'tsconfig.json'
+      }
+    },
+    setupFiles: ['<rootDir>/test/setup-env.js']
   }
 };

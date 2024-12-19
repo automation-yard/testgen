@@ -2,11 +2,13 @@ import { FrameworkRules } from './types';
 import { nestJSRules } from './nestjs';
 import { expressRules } from './express';
 import { reactRules } from './react';
+import { nodejsRules } from './nodejs';
 
 export const frameworkRules: Record<string, FrameworkRules> = {
   nestjs: nestJSRules,
   express: expressRules,
-  react: reactRules
+  react: reactRules,
+  nodejs: nodejsRules
 };
 
 export function getFrameworkRules(framework: string): FrameworkRules {

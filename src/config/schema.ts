@@ -5,7 +5,8 @@ const frameworkEnum = z.enum([
   'express',
   'fastify',
   'react',
-  'nextjs'
+  'nextjs',
+  'nodejs'
 ]);
 
 const languageEnum = z.enum(['javascript', 'typescript']);

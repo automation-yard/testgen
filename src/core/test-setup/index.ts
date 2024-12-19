@@ -44,6 +44,12 @@ const frameworkRequirements: Record<string, SetupRequirement[]> = {
       packageName: '@nestjs/testing'
     },
     { name: 'Jest Config', type: 'file', path: 'jest.config.js' }
+  ],
+  nodejs: [
+    { name: 'Jest', type: 'package', packageName: 'jest' },
+    { name: '@jest/globals', type: 'package', packageName: '@jest/globals' },
+    { name: '@types/jest', type: 'package', packageName: '@types/jest' },
+    { name: 'Jest Config', type: 'file', path: 'jest.config.js' }
   ]
 };
 

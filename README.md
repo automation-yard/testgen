@@ -6,10 +6,17 @@ TestGen is a powerful CLI tool that automatically generates comprehensive unit t
 
 - 🤖 AI-powered test generation using state-of-the-art LLMs
 - 🎯 Support for both JavaScript and TypeScript
-- ✨ Framework-aware testing (NestJS, Express, React, Next.js)
+- ✨ Framework-aware testing:
+  - Node.js (plain Node.js applications)
+  - NestJS
+  - Express
+  - React
+  - Next.js
 - 🔄 Intelligent mocking and dependency handling
 - 📝 Comprehensive test coverage
 - 🛠️ Configurable via `.testgenrc` or `package.json`
+- 🔁 Self-healing tests with automatic error fixing
+- 📊 Coverage-driven test enhancement
 
 ## Installation
 
@@ -55,11 +62,12 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
 ```json
 {
   "language": "typescript",
-  "framework": "nestjs",
+  "framework": "nodejs",
   "testFilePattern": "${filename}.test.${ext}",
   "llm": {
     "provider": "anthropic",
-    "temperature": 0,
+    "model": "claude-3-sonnet-20240229",
+    "temperature": 0.7,
     "maxTokens": 4096
   },
   "coverage": {
@@ -82,10 +90,10 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
 ### Configuration Options
 
 - `language`: Target language ("javascript" | "typescript")
-- `framework`: Project framework ("nestjs" | "express" | "fastify" | "react" | "nextjs")
+- `framework`: Project framework ("nodejs" | "nestjs" | "express" | "fastify" | "react" | "nextjs")
 - `testFilePattern`: Pattern for generated test files
 - `llm`: LLM provider configuration
-  - `provider`: LLM provider ("anthropic" | "openai")
+  - `provider`: LLM provider ("anthropic" | "openai" | "google" | "qwen")
   - `model`: Specific model to use (optional)
   - `temperature`: Model temperature (0-2)
   - `maxTokens`: Maximum tokens per request
@@ -117,6 +125,12 @@ For OpenAI:
 OPENAI_API_KEY=your_api_key
 ```
 
+For Google:
+
+```bash
+GOOGLE_API_KEY=your_api_key
+```
+
 For Qwen (via Hugging Face):
 
 ```bash
@@ -134,8 +148,9 @@ DEBUG_MODE=true # Enables debug mode and clean command
 - `testgen init` - Initialize TestGen configuration
 - `testgen generate <file> [options]` - Generate tests for a file
   - `-m, --method <method>` - Generate tests for a specific method
-  - `-p, --provider <provider>` - Choose LLM provider (anthropic/openai)
+  - `-p, --provider <provider>` - Choose LLM provider
   - `-k, --api-key <key>` - Provide API key directly
+  - `-f, --force` - Skip test setup verification
 - `testgen clean [options]` - Remove debug and test files
   - `-f, --force` - Force cleanup without DEBUG_MODE mode
   - `-t, --tests` - Also remove generated test files
@@ -148,9 +163,14 @@ src/
 ├── config/            # Configuration management
 ├── core/             # Core functionality
 │   ├── bundler/      # Code bundling and analysis
-│   └── generator/    # Test generation logic
+│   ├── generator/    # Test generation logic
+│   ├── test-runner/  # Test execution
+│   ├── test-healer/  # Test healing
+│   ├── coverage/     # Coverage management
+│   └── test-setup/   # Test setup verification
 ├── llm/              # LLM client implementations
 ├── prompts/          # LLM prompt templates
+│   └── frameworks/   # Framework-specific prompts
 └── types/            # TypeScript type definitions
 ```
 
