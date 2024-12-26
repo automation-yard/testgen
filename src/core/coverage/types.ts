@@ -9,6 +9,7 @@ export interface CoverageResult {
 }
 
 export interface CoverageConfig {
+  enabled?: boolean
   minimumCoverage: {
     statements: number
     branches: number

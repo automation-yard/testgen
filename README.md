@@ -64,6 +64,8 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
   "language": "typescript",
   "framework": "nodejs",
   "testFilePattern": "${filename}.test.${ext}",
+  "isMonoRepo": false,
+  "currentRoot": "/path/to/app",
   "llm": {
     "provider": "anthropic",
     "model": "claude-3-sonnet-20240229",
@@ -71,6 +73,7 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
     "maxTokens": 4096
   },
   "coverage": {
+    "enabled": true,
     "minimum": {
       "statements": 80,
       "branches": 80,
@@ -92,12 +95,15 @@ TestGen can be configured through a `.testgenrc` file or in your `package.json` 
 - `language`: Target language ("javascript" | "typescript")
 - `framework`: Project framework ("nodejs" | "nestjs" | "express" | "fastify" | "react" | "nextjs")
 - `testFilePattern`: Pattern for generated test files
+- `isMonoRepo`: Whether the project is a monorepo
+- `currentRoot`: Required for monorepo projects, path to the current app root
 - `llm`: LLM provider configuration
   - `provider`: LLM provider ("anthropic" | "openai" | "google" | "qwen")
-  - `model`: Specific model to use (optional)
+  - `model`: Specific model to use (optional, uses provider's latest model by default)
   - `temperature`: Model temperature (0-2)
   - `maxTokens`: Maximum tokens per request
-- `coverage`: Test coverage thresholds (optional)
+- `coverage`: Test coverage configuration (optional)
+  - `enabled`: Whether to enable coverage enhancement (default: true)
   - `minimum`: Minimum coverage thresholds
     - `statements`: Statement coverage threshold
     - `branches`: Branch coverage threshold
