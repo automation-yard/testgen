@@ -1,74 +1,58 @@
 import { z } from 'zod';
 
-const frameworkEnum = z.enum([
-  'nestjs',
-  'express',
-  'fastify',
-  'react',
-  'nextjs',
-  'nodejs'
-]);
-
-const languageEnum = z.enum(['javascript', 'typescript']);
-
-const llmProviderEnum = z.enum(['anthropic', 'openai', 'qwen', 'google']);
-
-const healingStrategyEnum = z.enum(['aggressive', 'conservative']);
-
-export const configSchema = z.object({
-  // Project Configuration
-  language: languageEnum.default('typescript'),
-  framework: frameworkEnum,
-
-  // Test Configuration
-  testFilePattern: z
-    .string()
-    .default('${filename}.spec.${ext}')
-    .describe(
-      'Pattern for generated test files. Variables: ${filename}, ${ext}'
-    ),
-
-  // LLM Configuration
-  llm: z.object({
-    provider: llmProviderEnum.default('anthropic'),
-    model: z.string().optional(),
-    temperature: z.number().min(0).max(2).default(0.7),
-    maxTokens: z.number().positive().optional(),
-    apiKey: z.string().optional()
-  }),
-
-  // Custom Prompts (optional)
-  prompts: z
-    .object({
-      pre: z.string().optional(),
-      post: z.string().optional()
-    })
-    .optional(),
-
-  // Test Coverage Configuration
-  coverage: z
-    .object({
-      minimum: z.object({
-        statements: z.number().min(0).max(100).default(80),
-        branches: z.number().min(0).max(100).default(80),
-        functions: z.number().min(0).max(100).default(80),
-        lines: z.number().min(0).max(100).default(80)
-      }),
-      maxEnhancementAttempts: z.number().positive().default(3)
-    })
-    .optional(),
-
-  // Test Healing Configuration
-  healing: z
-    .object({
-      strategy: healingStrategyEnum.default('conservative'),
-      maxRetriesForFix: z.number().positive().default(3),
-      timeoutPerAttempt: z.number().positive().optional()
-    })
-    .optional()
-});
-
-export type TestGenConfig = z.infer<typeof configSchema>;
+export const configSchema = z
+  .object({
+    language: z.enum(['javascript', 'typescript']),
+    framework: z.enum([
+      'nodejs',
+      'nestjs',
+      'express',
+      'fastify',
+      'react',
+      'nextjs'
+    ]),
+    testFilePattern: z.string(),
+    isMonoRepo: z.boolean().default(false),
+    currentRoot: z.string().optional(),
+    llm: z.object({
+      provider: z.enum(['anthropic', 'openai', 'google', 'qwen']),
+      model: z.string().optional(),
+      temperature: z.number().min(0).max(2),
+      maxTokens: z.number().positive().optional(),
+      apiKey: z.string().optional()
+    }),
+    coverage: z
+      .object({
+        minimum: z.object({
+          statements: z.number().min(0).max(100),
+          branches: z.number().min(0).max(100),
+          functions: z.number().min(0).max(100),
+          lines: z.number().min(0).max(100)
+        }),
+        maxEnhancementAttempts: z.number().positive()
+      })
+      .optional(),
+    healing: z
+      .object({
+        strategy: z.enum(['conservative', 'aggressive']),
+        maxRetriesForFix: z.number().positive(),
+        timeoutPerAttempt: z.number().positive().optional()
+      })
+      .optional()
+  })
+  .refine(
+    (data) => {
+      // Ensure currentRoot is provided when isMonoRepo is true
+      if (data.isMonoRepo && !data.currentRoot) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'currentRoot is required when isMonoRepo is true',
+      path: ['currentRoot']
+    }
+  );
 
 // Default configuration
 export const defaultConfig: TestGenConfig = {
@@ -92,6 +76,11 @@ export const defaultConfig: TestGenConfig = {
   },
   healing: {
     strategy: 'conservative',
-    maxRetriesForFix: 3
-  }
+    maxRetriesForFix: 3,
+    timeoutPerAttempt: 10000
+  },
+  isMonoRepo: false,
+  currentRoot: undefined
 };
+
+export type TestGenConfig = z.infer<typeof configSchema>;

@@ -12,7 +12,7 @@ import { buildAnalysisPrompt } from '../../prompts/analysis';
 import { writeDebugFile, writeTestFile } from '../../utils/files';
 import { CoverageResult } from '../../core/coverage/types';
 import { createLLMClient, LLMProvider } from '../../llm/factory';
-import { testSetupVerifier } from '../../core/test-setup';
+import { createTestSetupVerifier } from '../../core/test-setup';
 import ora from 'ora';
 import path from 'path';
 import * as readline from 'readline';
@@ -37,24 +37,35 @@ export function createGenerateCommand(): Command {
         const configLoader = new ConfigLoader();
         const config = await configLoader.loadConfig();
 
-        // Verify test setup
-        const setupResult = await testSetupVerifier.verifySetup(config);
-        if (!setupResult.isReady && !options.force) {
-          console.error(testSetupVerifier.getSetupInstructions(setupResult));
+        // Create and use test setup verifier
+        const verifier = createTestSetupVerifier(config);
+        const setupResult = await verifier.verify();
+
+        if (!setupResult.isComplete && !options.force) {
+          console.error(verifier.getErrorMessage(setupResult));
           console.error(
             '\nUse --force to generate tests anyway, but they may not run correctly.'
           );
           process.exit(1);
         }
 
-        if (!setupResult.isReady && options.force) {
+        if (!setupResult.isComplete && options.force) {
           console.warn(
             '\nWarning: Test setup is incomplete. Generated tests may not run correctly.'
           );
           console.warn('Missing requirements:');
-          setupResult.missingRequirements.forEach((req) => {
-            console.warn(`  - ${req.name}`);
-          });
+          if (setupResult.missingConfigFiles.length > 0) {
+            console.warn('Configuration files:');
+            setupResult.missingConfigFiles.forEach((file) => {
+              console.warn(`  - ${file}`);
+            });
+          }
+          if (setupResult.missingDependencies.length > 0) {
+            console.warn('Dependencies:');
+            setupResult.missingDependencies.forEach((dep) => {
+              console.warn(`  - ${dep}`);
+            });
+          }
           console.warn('\nProceeding with test generation...\n');
         }
 
@@ -170,7 +181,7 @@ export function createGenerateCommand(): Command {
           // Heal test if there are errors
           if (!initialTestResult.success && initialTestResult.errors) {
             spinner.info('Initial test has errors. Attempting to fix...');
-            console.log('initialTestResult errors: ', initialTestResult.errors);
+            console.log('Test errors:', initialTestResult.errors);
 
             const healingResult = await testHealer.healTest({
               originalServiceFile: file,
