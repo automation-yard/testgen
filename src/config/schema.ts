@@ -23,6 +23,7 @@ export const configSchema = z
     }),
     coverage: z
       .object({
+        enabled: z.boolean().default(true),
         minimum: z.object({
           statements: z.number().min(0).max(100),
           branches: z.number().min(0).max(100),
@@ -66,6 +67,7 @@ export const defaultConfig: TestGenConfig = {
     apiKey: ''
   },
   coverage: {
+    enabled: true,
     minimum: {
       statements: 80,
       branches: 80,

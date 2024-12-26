@@ -200,31 +200,33 @@ export function createGenerateCommand(): Command {
             spinner.succeed('Successfully fixed test errors');
           }
 
-          // Enhance coverage if needed
-          // spinner.start('Checking test coverage...');
-          // const coverageResult = await coverageManager.enhanceCoverage({
-          //   targetFile: file,
-          //   testFile,
-          //   currentCoverage: parseCoverageFromResult(initialTestResult),
-          //   config: {
-          //     minimumCoverage: config.coverage?.minimum || {
-          //       statements: 80,
-          //       branches: 80,
-          //       functions: 80,
-          //       lines: 80
-          //     },
-          //     maxEnhancementAttempts:
-          //       config.coverage?.maxEnhancementAttempts || 3
-          //   }
-          // });
+          // Enhance coverage if enabled and needed
+          if (config.coverage?.enabled !== false) {
+            spinner.start('Checking test coverage...');
+            const coverageResult = await coverageManager.enhanceCoverage({
+              targetFile: file,
+              testFile,
+              currentCoverage: parseCoverageFromResult(initialTestResult),
+              config: {
+                minimumCoverage: config.coverage?.minimum || {
+                  statements: 80,
+                  branches: 80,
+                  functions: 80,
+                  lines: 80
+                },
+                maxEnhancementAttempts:
+                  config.coverage?.maxEnhancementAttempts || 3
+              }
+            });
 
-          // if (!coverageResult.isEnhanced) {
-          //   spinner.warn('Could not achieve minimum coverage requirements');
-          //   console.log('Final coverage:', coverageResult.finalCoverage);
-          // } else {
-          //   spinner.succeed('Successfully enhanced test coverage');
-          //   console.log('Final coverage:', coverageResult.finalCoverage);
-          // }
+            if (!coverageResult.isEnhanced) {
+              spinner.warn('Could not achieve minimum coverage requirements');
+              console.log('Final coverage:', coverageResult.finalCoverage);
+            } else {
+              spinner.succeed('Successfully enhanced test coverage');
+              console.log('Final coverage:', coverageResult.finalCoverage);
+            }
+          }
         }
       } catch (error) {
         console.error(
