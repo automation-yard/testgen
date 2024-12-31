@@ -2,11 +2,6 @@ import { FrameworkRules } from './types';
 
 export const reactRules: FrameworkRules = {
   name: 'React',
-  importStatements: [
-    "import { render, screen, fireEvent } from '@testing-library/react'",
-    "import userEvent from '@testing-library/user-event'",
-    "import { act } from 'react-dom/test-utils'"
-  ],
 
   mockingPatterns: [
     'Mock hooks using jest.mock()',

@@ -2,6 +2,7 @@ import path from 'path';
 import { LLMClient } from '../../llm/types';
 import { javascriptPrompt, typescriptPrompt } from '../../prompts';
 import { ConfigLoader } from '../../config/loader';
+import { writeDebugFile } from '../../utils/files';
 
 export class TestGenerator {
   private inputFilePath!: string;
@@ -51,6 +52,7 @@ export class TestGenerator {
       framework: config.framework
     });
 
+    writeDebugFile(`${config.llm.provider}-test-generator-prompt`, prompt);
     const response = await this.llmClient.generateText(prompt);
     let code = response.content;
 

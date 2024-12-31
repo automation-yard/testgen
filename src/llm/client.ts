@@ -43,8 +43,6 @@ export class LLMClient {
 
   public async generateText(prompt: string): Promise<LLMResponse> {
     try {
-      writeDebugFile(`${this.config.llm.provider}-prompt`, prompt);
-
       const model = this.getModel(
         this.config.llm.provider,
         this.config.llm.model

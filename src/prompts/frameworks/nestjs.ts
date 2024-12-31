@@ -2,10 +2,6 @@ import { FrameworkRules } from './types';
 
 export const nestJSRules: FrameworkRules = {
   name: 'NestJS',
-  importStatements: [
-    "import { Test, TestingModule } from '@nestjs/testing'",
-    "import { ModuleRef } from '@nestjs/core'"
-  ],
 
   testingModuleSetup: `
 - Create TestingModule using Test.createTestingModule()

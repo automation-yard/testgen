@@ -27,8 +27,7 @@ Project Context:
 Framework: ${frameworkRules.name}
 Testing Environment: Jest with JavaScript
 
-Required Imports:
-${frameworkRules.importStatements.join('\n')}
+Required Imports: 
 ${allImports}
 
 Code Analysis:

@@ -38,7 +38,6 @@ Framework: ${frameworkRules.name}
 Testing Environment: Jest with TypeScript
 
 Required Imports:
-${frameworkRules.importStatements.join('\n')}
 ${allImports}
 
 Code Analysis:

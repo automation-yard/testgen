@@ -1,7 +1,14 @@
+export interface MockStructurePatterns {
+  simpleMock: string;
+  chainedMethods: string;
+  mockSetup: string;
+  typeSafeReturns: string;
+}
+
 export interface FrameworkRules {
   // Framework identification
   name: string;
-  importStatements: string[];
+  // importStatements: string[];
 
   // Testing module setup
   testingModuleSetup?: string;
@@ -16,6 +23,7 @@ export interface FrameworkRules {
     patterns: string[];
     testingStrategy: string[];
   };
+  mockStructurePatterns?: MockStructurePatterns;
 
   // Test organization
   testFileNaming: string;

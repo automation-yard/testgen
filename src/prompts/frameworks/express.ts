@@ -46,11 +46,7 @@ Testing Considerations:
 - Session handling in tests
 - Security testing scenarios
 - Integration test requirements`,
-  importStatements: [
-    "import request from 'supertest'",
-    "import express from 'express'"
-  ],
-
+ 
   mockingPatterns: [
     'Mock request and response objects',
     'Use jest.mock() for middleware',
