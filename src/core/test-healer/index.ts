@@ -11,7 +11,6 @@ import { LLMClient } from '../../llm/types';
 import { writeDebugFile } from '../../utils/files';
 import { TestGenConfig } from '../../config/schema';
 import ora from 'ora';
-import { TestGenerator } from '../generator';
 import { extractCode } from '../../utils/format';
 
 export class TestHealer {
@@ -52,16 +51,14 @@ export class TestHealer {
 
         // Apply fix
         await fs.writeFile(input.generatedTestFile, fixedTestCode);
-        writeDebugFile(
-          `healing-result-${attemptNumber}`,
-          JSON.stringify(response, null, 2)
-        );
+        writeDebugFile(`healing-result-${attemptNumber}`, response.content);
 
         // Run test to verify fix
         spinner.start('Re-running healed test...');
         const testResult = await testRunner.runTest({
           testFile: input.generatedTestFile,
-          timeout: this.config.timeoutPerAttempt
+          sourceFile: input.originalServiceFile,
+          collectCoverage: this.testGenConfig.coverage?.enabled !== false
         });
         writeDebugFile(
           `healing-test-result-${attemptNumber}`,

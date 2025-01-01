@@ -10,6 +10,7 @@ import { buildCoveragePrompt } from './prompt'
 import { testRunner } from '../test-runner'
 import { LLMClient } from '../../llm/types'
 import { TestGenConfig } from '../../config/schema'
+import { extractCode } from '../../utils/format'
 
 export class CoverageManager {
   constructor(
@@ -44,11 +45,12 @@ export class CoverageManager {
       const enhancedTestCode = response.content
 
       // Apply enhancement
-      await fs.writeFile(input.testFile, enhancedTestCode)
+      await fs.writeFile(input.testFile, extractCode(enhancedTestCode))
 
       // Run test with coverage
       const testResult = await testRunner.runTest({
         testFile: input.testFile,
+        sourceFile: input.targetFile,
         collectCoverage: true
       })
 
