@@ -1,6 +1,12 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { TestRunResult, TestRunOptions, TestErrorType } from './types';
+import {
+  TestRunResult,
+  TestRunOptions,
+  TestErrorType,
+  TestResultStatus,
+  TestStats
+} from './types';
 import { parseJestOutput } from './error-parser';
 import { parseCoverageResult } from '../coverage/parser';
 import { findNearestJestConfig } from './config-finder';
@@ -8,6 +14,7 @@ import { defaultJestConfigs } from './default-configs';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
+import { writeDebugFile } from '../../utils/files';
 
 const execAsync = promisify(exec);
 const tmpDir = os.tmpdir();
@@ -18,7 +25,7 @@ export class TestRunner {
   async runTest(options: TestRunOptions): Promise<TestRunResult> {
     const startTime = Date.now();
     const coverageDir = options.collectCoverage
-      ? path.join(tmpDir, `jest-coverage-${Date.now()}`)
+      ? path.join(process.cwd(), `testgen-coverage`)
       : undefined;
 
     try {
@@ -49,45 +56,46 @@ export class TestRunner {
         tempConfigPath
       );
 
-      const { stdout, stderr } = await execAsync(command, {
-        cwd: projectRoot || this.projectRoot,
-        env: {
-          ...process.env,
-          ...options.env,
-          NODE_ENV: 'test',
-          JEST_COVERAGE_DIR: coverageDir // Pass coverage dir to Jest
-        },
-        timeout: options.timeout
-      });
+      const bashCommand = command.replace(/\\/g, '/');
 
-      // Cleanup temp config
-      if (tempConfigPath && tempConfigPath !== configPath) {
-        await fs.promises.unlink(tempConfigPath).catch(console.error);
+      try {
+        // Try running the test
+        const { stdout, stderr } = await execAsync(bashCommand, {
+          cwd: projectRoot || this.projectRoot,
+          env: {
+            ...process.env,
+            ...options.env,
+            NODE_ENV: 'test'
+          },
+          timeout: options.timeout
+        });
+
+        // Success case - all tests passed
+        return await this.processTestResult({
+          stdout,
+          stderr,
+          coverageDir,
+          startTime,
+          tempConfigPath,
+          configPath,
+          options,
+          execError: undefined
+        });
+      } catch (execError: any) {
+        // Handle non-zero exit code (test failures or execution errors)
+        return await this.processTestResult({
+          stdout: execError.stdout,
+          stderr: execError.stderr,
+          coverageDir,
+          startTime,
+          tempConfigPath,
+          configPath,
+          options,
+          execError
+        });
       }
-
-      const output = stdout + '\n' + stderr;
-      const errors = parseJestOutput(output);
-
-      // Parse coverage if requested
-      const coverage = coverageDir
-        ? await parseCoverageResult(coverageDir)
-        : undefined;
-
-      // Cleanup coverage directory
-      if (coverageDir) {
-        await fs.promises
-          .rm(coverageDir, { recursive: true, force: true })
-          .catch(console.error);
-      }
-
-      return {
-        success: errors.length === 0,
-        errors: errors.length > 0 ? errors : undefined,
-        rawOutput: output,
-        duration: Date.now() - startTime,
-        coverage
-      };
     } catch (error: any) {
+      console.error('error in test runner', error);
       // Cleanup coverage directory on error
       if (coverageDir) {
         await fs.promises
@@ -101,6 +109,7 @@ export class TestRunner {
 
       return {
         success: false,
+        status: TestResultStatus.EXECUTION_ERROR,
         errors: [
           {
             type: errorType,
@@ -109,9 +118,141 @@ export class TestRunner {
           }
         ],
         rawOutput: errorMessage,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
+        testStats: {
+          total: 0,
+          failed: 0,
+          passed: 0,
+          skipped: 0
+        }
       };
     }
+  }
+
+  private async processTestResult({
+    stdout,
+    stderr,
+    coverageDir,
+    startTime,
+    tempConfigPath,
+    configPath,
+    options,
+    execError
+  }: {
+    stdout: string;
+    stderr: string;
+    coverageDir?: string;
+    startTime: number;
+    tempConfigPath: string | null;
+    configPath: string | null;
+    execError?: any;
+    options: TestRunOptions;
+  }): Promise<TestRunResult> {
+    const output = stdout + '\n' + stderr;
+
+    try {
+      // Cleanup temp config if needed
+      if (tempConfigPath && tempConfigPath !== configPath) {
+        await fs.promises.unlink(tempConfigPath).catch(console.error);
+      }
+
+      // Parse coverage if requested, using sourceFile if available
+      const coverage = coverageDir
+        ? await parseCoverageResult(coverageDir, options.sourceFile)
+        : undefined;
+
+      // Cleanup coverage directory
+      // if (coverageDir) {
+      //   await fs.promises
+      //     .rm(coverageDir, { recursive: true, force: true })
+      //     .catch(console.error);
+      // }
+
+      writeDebugFile(
+        `coverage-${Date.now()}`,
+        JSON.stringify(coverage, null, 2)
+      );
+
+      // Parse the output to determine test status
+      const errors = parseJestOutput(output);
+      const hasExecutionError = output.includes('Test suite failed to run');
+      const testStats = this.parseTestStats(output);
+
+      // Determine final status
+      const status = this.determineTestStatus(hasExecutionError, testStats);
+
+      return {
+        success: status === TestResultStatus.SUCCESS,
+        status,
+        errors: hasExecutionError
+          ? [
+              {
+                type: TestErrorType.UNKNOWN,
+                message: execError?.message || String(execError),
+                stack: execError?.stack
+              }
+            ]
+          : errors.length > 0
+            ? errors
+            : undefined,
+        rawOutput: output,
+        duration: Date.now() - startTime,
+        coverage,
+        testStats
+      };
+    } catch (error) {
+      // Handle errors in processing results
+      return {
+        success: false,
+        status: TestResultStatus.EXECUTION_ERROR,
+        errors: [
+          {
+            type: TestErrorType.UNKNOWN,
+            message: String(error),
+            stack: error instanceof Error ? error.stack : undefined
+          }
+        ],
+        rawOutput: output,
+        duration: Date.now() - startTime,
+        testStats: {
+          total: 0,
+          failed: 0,
+          passed: 0,
+          skipped: 0
+        }
+      };
+    }
+  }
+
+  private parseTestStats(output: string): TestStats {
+    // Parse "Tests: X failed, Y total" line
+    const statsMatch = output.match(/Tests:\s+(\d+)\s+failed,\s+(\d+)\s+total/);
+    if (!statsMatch) {
+      return { total: 0, failed: 0, passed: 0, skipped: 0 };
+    }
+
+    const failed = parseInt(statsMatch[1], 10);
+    const total = parseInt(statsMatch[2], 10);
+
+    return {
+      total,
+      failed,
+      passed: total - failed,
+      skipped: 0 // We can enhance this later if needed
+    };
+  }
+
+  private determineTestStatus(
+    hasExecutionError: boolean,
+    stats: TestStats
+  ): TestResultStatus {
+    if (hasExecutionError) {
+      return TestResultStatus.EXECUTION_ERROR;
+    }
+    if (stats.failed > 0) {
+      return TestResultStatus.TEST_FAILURES;
+    }
+    return TestResultStatus.SUCCESS;
   }
 
   private determineProcessErrorType(errorMessage: string): TestErrorType {
@@ -177,8 +318,8 @@ export class TestRunner {
       'jest',
       `"${testFile}"`, // Quote the test file path
       '--no-cache',
-      '--detectOpenHandles',
-      '--forceExit'
+      '--detectOpenHandles'
+      // '--forceExit'
     ];
 
     // Add config if available
@@ -192,8 +333,8 @@ export class TestRunner {
         '--coverage',
         '--coverageDirectory',
         `"${coverageDir}"`,
-        '--coverageReporters=json,json-summary',
-        '--collectCoverage=true'
+        '--coverageReporters json',
+        '--coverageReporters json-summary'
       );
     }
 

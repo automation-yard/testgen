@@ -1,5 +1,5 @@
 import { TestRunner } from '..';
-import { TestErrorType } from '../types';
+import { TestErrorType, TestResultStatus } from '../types';
 import path from 'path';
 import fs from 'fs';
 
@@ -46,7 +46,14 @@ describe('TestRunner', () => {
       const result = await testRunner.runTest({ testFile });
 
       expect(result.success).toBe(false);
+      expect(result.status).toBe(TestResultStatus.EXECUTION_ERROR);
       expect(result.errors?.[0].type).toBe(TestErrorType.SYNTAX);
+      expect(result.testStats).toEqual({
+        total: 0,
+        failed: 0,
+        passed: 0,
+        skipped: 0
+      });
     });
 
     test('should detect dependency errors', async () => {
@@ -68,6 +75,31 @@ describe('TestRunner', () => {
       expect(result.errors?.[0].type).toBe(TestErrorType.DEPENDENCY);
     });
 
+    test('should handle failing tests', async () => {
+      const testFile = path.join(tempPath, 'failing.test.ts');
+      fs.writeFileSync(
+        testFile,
+        `
+        describe('failing test', () => {
+          it('fails assertion', () => {
+            expect(1).toBe(2)
+          })
+        })
+      `
+      );
+
+      const result = await testRunner.runTest({ testFile });
+
+      expect(result.success).toBe(false);
+      expect(result.status).toBe(TestResultStatus.TEST_FAILURES);
+      expect(result.testStats).toEqual({
+        total: 1,
+        failed: 1,
+        passed: 0,
+        skipped: 0
+      });
+    });
+
     test('should handle successful tests', async () => {
       const testFile = path.join(tempPath, 'success.test.ts');
       fs.writeFileSync(
@@ -84,7 +116,14 @@ describe('TestRunner', () => {
       const result = await testRunner.runTest({ testFile });
 
       expect(result.success).toBe(true);
+      expect(result.status).toBe(TestResultStatus.SUCCESS);
       expect(result.errors).toBeUndefined();
+      expect(result.testStats).toEqual({
+        total: 1,
+        failed: 0,
+        passed: 1,
+        skipped: 0
+      });
     });
   });
 
@@ -150,6 +189,49 @@ describe('TestRunner', () => {
       expect(result.coverage?.statements).toBeGreaterThan(0);
       expect(result.coverage?.functions).toBeGreaterThan(0);
       expect(result.coverage?.lines).toBeGreaterThan(0);
+    });
+
+    test('should handle coverage collection for specific file', async () => {
+      // Create source file
+      const sourceFile = path.join(tempPath, 'example.ts');
+      fs.writeFileSync(
+        sourceFile,
+        `
+        export function add(a: number, b: number) {
+          return a + b;
+        }
+
+        export function subtract(a: number, b: number) {
+          return a - b;
+        }
+        `
+      );
+
+      // Create test file
+      const testFile = path.join(tempPath, 'example.test.ts');
+      fs.writeFileSync(
+        testFile,
+        `
+        import { add } from './example';
+
+        describe('example', () => {
+          it('adds numbers', () => {
+            expect(add(1, 2)).toBe(3);
+          });
+        });
+        `
+      );
+
+      const result = await testRunner.runTest({
+        testFile,
+        collectCoverage: true
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.coverage).toBeDefined();
+      expect(result.coverage?.statements).toBe(50); // Only add function is covered
+      expect(result.coverage?.functions).toBe(50);
+      expect(result.coverage?.uncoveredFunctions).toContain('subtract');
     });
   });
 

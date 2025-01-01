@@ -2,13 +2,11 @@ import { CoverageResult } from './types'
 import fs from 'fs/promises'
 import path from 'path'
 
-interface JestCoverageSummary {
-  total: {
+interface JestCoverageSummary { 
     statements: { total: number; covered: number; pct: number }
     branches: { total: number; covered: number; pct: number }
     functions: { total: number; covered: number; pct: number }
     lines: { total: number; covered: number; pct: number }
-  }
 }
 
 interface JestCoverageDetail {
@@ -20,53 +18,73 @@ interface JestCoverageDetail {
   b: Record<string, number[]>  // branch coverage
 }
 
-export async function parseCoverageResult(coverageDir: string): Promise<CoverageResult> {
+export async function parseCoverageResult(
+  coverageDir: string,
+  targetFile?: string
+): Promise<CoverageResult> {
   try {
     // Wait for coverage files to be written
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Read coverage summary
-    const summaryPath = path.join(coverageDir, 'coverage-summary.json')
-    const summary = JSON.parse(await fs.readFile(summaryPath, 'utf-8')) as JestCoverageSummary
+    // Read both coverage files
+    const summaryPath = path.join(coverageDir, 'coverage-summary.json');
+    const detailPath = path.join(coverageDir, 'coverage-final.json');
+    
+    const summaryData = JSON.parse(await fs.readFile(summaryPath, 'utf-8')) as Record<string, JestCoverageSummary>;
+    const detailData = JSON.parse(await fs.readFile(detailPath, 'utf-8')) as Record<string, JestCoverageDetail>;
 
-    // Get the first coverage file for detailed info
-    const coverageFiles = await fs.readdir(coverageDir)
-    const detailFile = coverageFiles.find(f => f.endsWith('.json') && !f.includes('summary'))
-    if (!detailFile) {
-      console.warn('No detailed coverage information found')
-      return createEmptyCoverageResult()
+    // If no target file, return empty coverage
+    if (!targetFile) {
+      return createEmptyCoverageResult();
     }
 
-    const detailPath = path.join(coverageDir, detailFile)
-    const detail = JSON.parse(await fs.readFile(detailPath, 'utf-8')) as JestCoverageDetail
+    // Find the matching file in coverage data
+    const normalizedTargetPath = path.normalize(targetFile).replace(/\\/g, '/');
+    console.log('Looking for coverage for file:', normalizedTargetPath);
 
-    // Get uncovered lines
-    const uncoveredLines = Object.entries(detail.s)
-      .filter(([_, covered]) => covered === 0)
-      .map(([id]) => detail.statementMap[id].start.line)
+    const targetFilePath = Object.keys(summaryData).find(filePath => {
+      const normalizedFilePath = path.normalize(filePath).replace(/\\/g, '/');
+      console.log('Checking against:', normalizedFilePath);
+      return normalizedFilePath.includes(normalizedTargetPath);
+    });
 
-    // Get uncovered functions
-    const uncoveredFunctions = Object.entries(detail.f)
-      .filter(([_, covered]) => covered === 0)
-      .map(([id]) => detail.fnMap[id].name)
+    if (!targetFilePath) {
+      console.warn('Available files in coverage:', Object.keys(summaryData));
+      console.warn('No coverage data found for target file:', targetFile);
+      return createEmptyCoverageResult();
+    }
 
-    // Get uncovered branches
-    const uncoveredBranches = Object.entries(detail.b)
+    const coverageSummary = summaryData[targetFilePath];
+    const coverageDetail = detailData[targetFilePath];
+
+    // Get uncovered lines from detail data
+    const uncoveredLines = Object.entries(coverageDetail.s)
+      .filter(([_, count]) => count === 0)
+      .map(([id]) => coverageDetail.statementMap[id].start.line);
+
+    // Get uncovered functions from detail data
+    const uncoveredFunctions = Object.entries(coverageDetail.f)
+      .filter(([_, count]) => count === 0)
+      .map(([id]) => coverageDetail.fnMap[id].name);
+
+    // Get uncovered branches from detail data
+    const uncoveredBranches = Object.entries(coverageDetail.b)
       .filter(([_, coverage]) => coverage.some(c => c === 0))
-      .map(([id]) => `Line ${detail.branchMap[id].line}: ${detail.branchMap[id].type} branch`)
+      .map(([id]) => `Line ${coverageDetail.branchMap[id].line}: ${coverageDetail.branchMap[id].type} branch`);
 
     return {
-      statements: summary.total.statements.pct,
-      branches: summary.total.branches.pct,
-      functions: summary.total.functions.pct,
-      lines: summary.total.lines.pct,
+      statements: coverageSummary.statements.pct,
+      branches: coverageSummary.branches.pct,
+      functions: coverageSummary.functions.pct,
+      lines: coverageSummary.lines.pct,
       uncoveredLines: [...new Set(uncoveredLines)].sort((a, b) => a - b),
       uncoveredFunctions,
       uncoveredBranches
-    }
+    };
+
   } catch (error) {
-    console.warn('Error parsing coverage results:', error)
-    return createEmptyCoverageResult()
+    console.warn('Error parsing coverage results:', error);
+    return createEmptyCoverageResult();
   }
 }
 

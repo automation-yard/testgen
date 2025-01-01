@@ -172,16 +172,16 @@ export function createGenerateCommand(): Command {
           spinner.succeed(`Tests generated: ${testFile}`);
 
           // Run initial test with coverage
-          spinner.start('Running tests...');
+          spinner.info('Running tests...');
           const initialTestResult = await testRunner.runTest({
             testFile,
-            collectCoverage: true
+            sourceFile: file,
+            collectCoverage: config.coverage?.enabled !== false
           });
 
           // Heal test if there are errors
           if (!initialTestResult.success && initialTestResult.errors) {
             spinner.info('Initial test has errors. Attempting to fix...');
-            console.log('Test errors:', initialTestResult.errors);
 
             const healingResult = await testHealer.healTest({
               originalServiceFile: file,
@@ -202,7 +202,7 @@ export function createGenerateCommand(): Command {
 
           // Enhance coverage if enabled and needed
           if (config.coverage?.enabled !== false) {
-            spinner.start('Checking test coverage...');
+            spinner.info('Checking test coverage...');
             const coverageResult = await coverageManager.enhanceCoverage({
               targetFile: file,
               testFile,

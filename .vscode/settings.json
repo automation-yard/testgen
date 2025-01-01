@@ -1,3 +1,7 @@
 {
-  "cSpell.words": ["automationyard", "testgen"]
+  "cSpell.words": ["automationyard", "testgen"],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always"
+  }
 }
