@@ -1,4 +1,5 @@
 export interface MockStructurePatterns {
+  frameworkSetup: string;
   simpleMock: string;
   chainedMethods: string;
   mockSetup: string;
